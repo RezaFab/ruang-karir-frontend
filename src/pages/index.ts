@@ -1,4 +1,7 @@
 export { default as LandingPage } from './LandingPage'
+export { default as LoginPage } from './LoginPage'
+export { default as CreateAccountPage } from './CreateAccountPage'
+export { default as ForgotPasswordPage } from './ForgotPasswordPage'
 export { default as AssessmentPage } from './AssessmentPage'
 export { default as AssessmentResultPage } from './AssessmentResultPage'
 export { default as LearningPathDetailPage } from './LearningPathDetailPage'

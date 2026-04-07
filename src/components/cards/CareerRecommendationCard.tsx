@@ -25,7 +25,7 @@ export function CareerRecommendationCard({
           </p>
         </div>
         <span className="rounded-full bg-ink px-3 py-1 text-xs font-semibold text-white">
-          Match {recommendation.matchScore}%
+          Kecocokan {recommendation.matchScore}%
         </span>
       </div>
 

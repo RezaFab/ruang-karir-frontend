@@ -105,8 +105,8 @@ export default function AssessmentPage() {
   return (
     <section className="space-y-8">
       <SectionHeader
-        title="Career Assessment"
-        subtitle="Isi asesmen bertahap untuk menghasilkan rekomendasi karier dan learning path personal."
+        title="Asesmen Karier"
+        subtitle="Isi asesmen bertahap untuk menghasilkan rekomendasi karier dan jalur belajar personal."
       />
 
       <div className="rounded-2xl border border-border bg-surface p-5">
@@ -118,7 +118,7 @@ export default function AssessmentPage() {
           />
         </div>
         <p className="mt-2 text-xs font-medium uppercase tracking-[0.12em] text-muted">
-          Progress {completionPercent}%
+          Kemajuan {completionPercent}%
         </p>
       </div>
 
@@ -325,7 +325,7 @@ export default function AssessmentPage() {
 
             {!goalsLoading && !goalsError && careerGoals?.length === 0 ? (
               <EmptyState
-                title="Career goal belum tersedia"
+                title="Tujuan karier belum tersedia"
                 description="Silakan lanjutkan tanpa memilih tujuan."
               />
             ) : null}
@@ -454,7 +454,7 @@ export default function AssessmentPage() {
               disabled={submitMutation.isPending}
               className="rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitMutation.isPending ? 'Mengirim...' : 'Submit Assessment'}
+              {submitMutation.isPending ? 'Mengirim...' : 'Kirim Asesmen'}
             </button>
           )}
         </div>

@@ -66,6 +66,48 @@ export interface UpdateLearningProgressResponseData {
   progressSummary: ProgressSummary
 }
 
+export interface LoginRequest {
+  identifier: string
+  password: string
+}
+
+export interface GoogleLoginRequest {
+  idToken: string
+}
+
+export interface RegisterRequest {
+  fullName: string
+  username: string
+  email: string
+  password: string
+}
+
+export interface RegisterResponseData {
+  userId: string
+  username: string
+  email: string
+  displayName: string
+  createdAt: string
+}
+
+export interface ForgotPasswordRequest {
+  identifier: string
+}
+
+export interface ForgotPasswordResponseData {
+  deliveryChannel: 'email'
+  maskedDestination: string
+  expiresInMinutes: number
+}
+
+export interface LoginResponseData {
+  userId: string
+  displayName: string
+  email: string
+  accessToken: string
+  authProvider: 'password' | 'google'
+}
+
 export type GetUserProfileResponse = ApiResponse<UserProfile>
 export type GetCareerGoalsResponse = ApiResponse<CareerGoal[]>
 export type SubmitAssessmentResponse = ApiResponse<SubmitAssessmentResponseData>
@@ -76,3 +118,6 @@ export type GetBadgesResponse = ApiResponse<Badge[]>
 export type GetIndustryTrendsResponse = ApiResponse<IndustryTrend[]>
 export type GetCompanyCandidatesResponse = ApiResponse<CompanyCandidateSummary[]>
 export type GetProgressSummaryResponse = ApiResponse<ProgressSummary>
+export type LoginResponse = ApiResponse<LoginResponseData>
+export type RegisterResponse = ApiResponse<RegisterResponseData>
+export type ForgotPasswordResponse = ApiResponse<ForgotPasswordResponseData>

@@ -10,14 +10,14 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h3 className="font-heading text-xl font-semibold text-ink">{candidate.fullName}</h3>
-          <p className="text-sm text-muted">Target role: {candidate.targetRole}</p>
+          <p className="text-sm text-muted">Target peran: {candidate.targetRole}</p>
         </div>
         <span
           className={`rounded-full px-3 py-1 text-xs font-semibold ${
             candidate.status === 'Ready' ? 'bg-success-soft text-success' : 'bg-panel text-muted'
           }`}
         >
-          {candidate.status}
+          {candidate.status === 'Ready' ? 'Siap' : 'Perlu Upskilling'}
         </span>
       </div>
 
@@ -31,7 +31,7 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
         ))}
       </div>
 
-      <p className="mt-4 text-sm font-semibold text-ink">Readiness score: {candidate.readinessScore}/100</p>
+      <p className="mt-4 text-sm font-semibold text-ink">Skor kesiapan: {candidate.readinessScore}/100</p>
     </article>
   )
 }

@@ -6,6 +6,18 @@ interface ModuleCardProps {
   isUpdating?: boolean
 }
 
+function mapLevel(level: LearningModule['level']): string {
+  if (level === 'Beginner') {
+    return 'Pemula'
+  }
+
+  if (level === 'Intermediate') {
+    return 'Menengah'
+  }
+
+  return 'Lanjutan'
+}
+
 export function ModuleCard({ module, onToggleComplete, isUpdating = false }: ModuleCardProps) {
   return (
     <article className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
@@ -23,7 +35,7 @@ export function ModuleCard({ module, onToggleComplete, isUpdating = false }: Mod
             module.isCompleted ? 'bg-success-soft text-success' : 'bg-panel text-muted'
           }`}
         >
-          {module.isCompleted ? 'Completed' : 'In Progress'}
+          {module.isCompleted ? 'Selesai' : 'Sedang Dipelajari'}
         </span>
       </div>
 
@@ -32,7 +44,7 @@ export function ModuleCard({ module, onToggleComplete, isUpdating = false }: Mod
           {module.provider}
         </span>
         <span className="rounded-full border border-border px-2 py-1 text-muted">
-          {module.level}
+          {mapLevel(module.level)}
         </span>
         <span className="rounded-full border border-border px-2 py-1 text-muted">
           {module.durationHours} jam
@@ -54,7 +66,7 @@ export function ModuleCard({ module, onToggleComplete, isUpdating = false }: Mod
           onClick={() => onToggleComplete(module.id, !module.isCompleted)}
           className="mt-5 rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {module.isCompleted ? 'Mark as Incomplete' : 'Mark as Complete'}
+          {module.isCompleted ? 'Tandai Belum Selesai' : 'Tandai Selesai'}
         </button>
       ) : null}
     </article>

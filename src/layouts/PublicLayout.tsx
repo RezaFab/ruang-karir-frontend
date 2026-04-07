@@ -1,6 +1,11 @@
-import { Link, Outlet } from 'react-router-dom'
+import { Link, Outlet, useLocation } from 'react-router-dom'
+import { useSessionStore } from '../store'
 
 export function PublicLayout() {
+  const location = useLocation()
+  const isLanding = location.pathname === '/'
+  const isAuthenticated = useSessionStore((state) => state.isAuthenticated)
+
   return (
     <div className="min-h-screen bg-background text-ink">
       <header className="sticky top-0 z-40 border-b border-border bg-white/90 backdrop-blur">
@@ -8,23 +13,38 @@ export function PublicLayout() {
           <Link to="/" className="font-heading text-xl font-semibold tracking-tight text-ink">
             Ruang Karir
           </Link>
-          <nav className="hidden items-center gap-6 text-sm font-medium text-muted md:flex">
-            <a href="#masalah" className="hover:text-ink">
-              Masalah
-            </a>
-            <a href="#cara-kerja" className="hover:text-ink">
-              Cara Kerja
-            </a>
-            <a href="#manfaat" className="hover:text-ink">
-              Manfaat
-            </a>
-          </nav>
-          <Link
-            to="/assessment"
-            className="rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
-          >
-            Mulai Assessment
-          </Link>
+
+          {isLanding ? (
+            <nav className="hidden items-center gap-6 text-sm font-medium text-muted md:flex">
+              <a href="#masalah" className="hover:text-ink">
+                Masalah
+              </a>
+              <a href="#cara-kerja" className="hover:text-ink">
+                Cara Kerja
+              </a>
+              <a href="#manfaat" className="hover:text-ink">
+                Manfaat
+              </a>
+            </nav>
+          ) : (
+            <div className="hidden text-sm font-medium text-muted md:block">Platform AI Karier</div>
+          )}
+
+          <div className="flex items-center gap-2">
+            <Link
+              to="/assessment"
+              className="rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:bg-panel"
+            >
+              Mulai Asesmen
+            </Link>
+
+            <Link
+              to={isAuthenticated ? '/dashboard' : '/login'}
+              className="rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+            >
+              {isAuthenticated ? 'Dasbor' : 'Masuk'}
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -37,11 +57,10 @@ export function PublicLayout() {
             Platform AI untuk membantu transisi karier melalui asesmen personal, rekomendasi role, dan
             learning path berbasis kebutuhan industri.
           </p>
-          <p className="mt-6 text-xs uppercase tracking-[0.12em] text-muted">
-            Demo frontend backend-ready untuk presentasi lomba
-          </p>
+          <p className="mt-6 text-xs uppercase tracking-[0.12em] text-muted">© 2026 RAJA Jasindo</p>
         </div>
       </footer>
     </div>
   )
 }
+

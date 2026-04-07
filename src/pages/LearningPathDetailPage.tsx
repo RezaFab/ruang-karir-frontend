@@ -8,6 +8,18 @@ import {
 } from '../hooks/useCareerApi'
 import { useUiStore } from '../store'
 
+function mapLevel(level: 'Beginner' | 'Intermediate' | 'Advanced') {
+  if (level === 'Beginner') {
+    return 'Pemula'
+  }
+
+  if (level === 'Intermediate') {
+    return 'Menengah'
+  }
+
+  return 'Lanjutan'
+}
+
 export default function LearningPathDetailPage() {
   const { id } = useParams()
 
@@ -59,14 +71,14 @@ export default function LearningPathDetailPage() {
   if (!id) {
     return (
       <EmptyState
-        title="Learning path tidak ditemukan"
-        description="Path ID tidak tersedia di URL."
+        title="Jalur belajar tidak ditemukan"
+        description="ID jalur tidak tersedia di URL."
         action={
           <Link
             to="/assessment/result"
             className="rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-white"
           >
-            Kembali ke Result
+            Kembali ke Hasil
           </Link>
         }
       />
@@ -76,16 +88,16 @@ export default function LearningPathDetailPage() {
   return (
     <section className="space-y-6">
       <SectionHeader
-        title="Learning Path Detail"
-        subtitle="Pantau modul, provider materi, durasi estimasi, dan progres belajar secara granular."
+        title="Detail Jalur Belajar"
+        subtitle="Pantau modul, penyedia materi, durasi estimasi, dan progres belajar secara granular."
       />
 
       {pathLoading ? <LoadingSkeleton lines={6} /> : null}
 
       {pathError ? (
         <ErrorState
-          title="Gagal memuat learning path"
-          description="Path tidak tersedia atau terjadi gangguan jaringan."
+          title="Gagal memuat jalur belajar"
+          description="Jalur tidak tersedia atau terjadi gangguan jaringan."
           onRetry={() => {
             void refetchPath()
           }}
@@ -98,11 +110,11 @@ export default function LearningPathDetailPage() {
             <h2 className="font-heading text-2xl font-semibold text-ink">{learningPath.title}</h2>
             <p className="mt-2 text-sm text-muted">{learningPath.summary}</p>
             <div className="mt-6 grid gap-3 md:grid-cols-4">
-              <StatCard label="Level" value={learningPath.level} />
+              <StatCard label="Level" value={mapLevel(learningPath.level)} />
               <StatCard label="Durasi" value={`${learningPath.estimatedWeeks} minggu`} />
               <StatCard label="Total Jam" value={`${learningPath.totalHours} jam`} />
               <StatCard
-                label="Completion"
+                label="Penyelesaian"
                 value={`${progressSummary?.completionRate ?? 0}%`}
                 helper={`${progressSummary?.completedModules ?? 0} dari ${progressSummary?.totalModules ?? learningPath.modules.length} modul`}
               />
@@ -124,7 +136,7 @@ export default function LearningPathDetailPage() {
                         : 'border-border text-muted'
                     }`}
                   >
-                    {filter}
+                    {filter === 'all' ? 'Semua' : filter === 'completed' ? 'Selesai' : 'Belum Selesai'}
                   </button>
                 ))}
               </div>
@@ -132,16 +144,16 @@ export default function LearningPathDetailPage() {
 
             <label className="text-sm">
               <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-muted">
-                Sort by
+                Urutkan
               </span>
               <select
                 value={moduleSort}
                 onChange={(event) => setModuleSort(event.target.value as 'sequence' | 'duration' | 'provider')}
                 className="input-field"
               >
-                <option value="sequence">Sequence</option>
-                <option value="duration">Duration</option>
-                <option value="provider">Provider</option>
+                <option value="sequence">Urutan</option>
+                <option value="duration">Durasi</option>
+                <option value="provider">Penyedia</option>
               </select>
             </label>
           </div>
@@ -167,20 +179,20 @@ export default function LearningPathDetailPage() {
           )}
 
           <div className="rounded-2xl border border-border bg-panel p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Progress Summary</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Ringkasan Progres</p>
             <p className="mt-2 text-sm text-ink">{progressSummary?.nextAction}</p>
             <div className="mt-4 flex flex-wrap gap-3">
               <Link
                 to="/dashboard"
                 className="rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
               >
-                Buka Dashboard
+                Buka Dasbor
               </Link>
               <Link
                 to="/badges"
                 className="rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink"
               >
-                Lihat Badges
+                Lihat Lencana
               </Link>
             </div>
           </div>

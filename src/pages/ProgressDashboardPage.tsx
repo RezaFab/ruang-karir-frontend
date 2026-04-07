@@ -50,7 +50,7 @@ export default function ProgressDashboardPage() {
   if (profileError || summaryError || !progressSummary) {
     return (
       <ErrorState
-        title="Dashboard belum bisa ditampilkan"
+        title="Dasbor belum bisa ditampilkan"
         description="Gagal mengambil ringkasan progres belajar."
         onRetry={() => {
           void refetchSummary()
@@ -62,18 +62,18 @@ export default function ProgressDashboardPage() {
   return (
     <section className="space-y-6">
       <SectionHeader
-        title="Progress Dashboard"
-        subtitle={`Pantau readiness karier ${userProfile?.fullName ?? 'user'} secara menyeluruh.`}
+        title="Dasbor Progres"
+        subtitle={`Pantau kesiapan karier ${userProfile?.fullName ?? 'pengguna'} secara menyeluruh.`}
       />
 
       <div className="grid gap-3 md:grid-cols-4">
-        <StatCard label="Overall Progress" value={`${progressSummary.completionRate}%`} />
+        <StatCard label="Progres Keseluruhan" value={`${progressSummary.completionRate}%`} />
         <StatCard
           label="Modul Selesai"
           value={`${progressSummary.completedModules}/${progressSummary.totalModules}`}
         />
         <StatCard label="Jam Belajar" value={`${progressSummary.totalHoursSpent} jam`} />
-        <StatCard label="Target Path" value={learningPath?.title ?? 'Learning Path'} />
+        <StatCard label="Target Jalur" value={learningPath?.title ?? 'Jalur Belajar'} />
       </div>
 
       <article className="rounded-2xl border border-border bg-surface p-6">
@@ -88,7 +88,7 @@ export default function ProgressDashboardPage() {
                     item.status === 'done' ? 'bg-success-soft text-success' : 'bg-panel text-muted'
                   }`}
                 >
-                  {item.status === 'done' ? 'Done' : 'Upcoming'}
+                  {item.status === 'done' ? 'Selesai' : 'Berikutnya'}
                 </span>
               </div>
               <p className="mt-1 text-sm text-muted">{item.description}</p>
@@ -100,7 +100,7 @@ export default function ProgressDashboardPage() {
 
       <div className="grid gap-4 md:grid-cols-2">
         <article className="rounded-2xl border border-border bg-surface p-6">
-          <h2 className="font-heading text-2xl font-semibold text-ink">AI Suggestion Panel</h2>
+          <h2 className="font-heading text-2xl font-semibold text-ink">Panel Saran AI</h2>
           <div className="mt-4 space-y-3">
             {progressSummary.aiSuggestions.map((suggestion) => (
               <div key={suggestion.id} className="rounded-xl border border-border bg-white p-4">
@@ -118,10 +118,10 @@ export default function ProgressDashboardPage() {
         </article>
 
         <article className="rounded-2xl border border-border bg-panel p-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Next Action Reminder</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Pengingat Aksi Berikutnya</p>
           <h2 className="mt-2 font-heading text-2xl font-semibold text-ink">{progressSummary.nextAction}</h2>
           <p className="mt-3 text-sm text-muted">
-            Strategi ini membantu menjaga konsistensi pace belajar dan mempercepat readiness score.
+            Strategi ini membantu menjaga konsistensi pace belajar dan mempercepat skor kesiapan.
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
             <Link
@@ -134,7 +134,7 @@ export default function ProgressDashboardPage() {
               to="/assessment/result"
               className="rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink"
             >
-              Lihat Assessment Result
+              Lihat Hasil Asesmen
             </Link>
           </div>
         </article>

@@ -22,7 +22,7 @@ export function ProgressStepper({ steps, currentStep }: ProgressStepperProps) {
             }`}
           >
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
-              Step {index + 1}
+              Tahap {index + 1}
             </p>
             <p className="mt-1 text-sm font-medium text-ink">{step}</p>
           </li>

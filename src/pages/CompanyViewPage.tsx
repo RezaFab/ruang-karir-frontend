@@ -15,7 +15,7 @@ export default function CompanyViewPage() {
   if (isError) {
     return (
       <ErrorState
-        title="Company candidates belum tersedia"
+        title="Kandidat perusahaan belum tersedia"
         description="Terjadi kendala saat mengambil data kandidat unggulan."
         onRetry={() => {
           void refetch()
@@ -36,7 +36,7 @@ export default function CompanyViewPage() {
     return (
       <EmptyState
         title="Belum ada kandidat"
-        description="Data kandidat akan muncul setelah user menyelesaikan progress minimum."
+        description="Data kandidat akan muncul setelah pengguna menyelesaikan progres minimum."
       />
     )
   }
@@ -44,12 +44,12 @@ export default function CompanyViewPage() {
   return (
     <section className="space-y-6">
       <SectionHeader
-        title="Company / HR View"
-        subtitle="Placeholder B2B untuk menampilkan kandidat unggulan berdasarkan readiness score."
+        title="Tampilan Perusahaan / HR"
+        subtitle="Placeholder B2B untuk menampilkan kandidat unggulan berdasarkan skor kesiapan."
       />
 
       <article className="rounded-2xl border border-border bg-surface p-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Sort Kandidat</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Urutkan Kandidat</p>
         <div className="mt-3 flex flex-wrap gap-2">
           {(['readiness', 'name'] as const).map((sortKey) => (
             <button
@@ -62,7 +62,7 @@ export default function CompanyViewPage() {
                   : 'border-border text-muted'
               }`}
             >
-              {sortKey === 'readiness' ? 'Readiness Score' : 'Nama'}
+              {sortKey === 'readiness' ? 'Skor Kesiapan' : 'Nama'}
             </button>
           ))}
         </div>

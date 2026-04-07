@@ -1,30 +1,41 @@
 import { create } from 'zustand'
-import type { UserRole } from '../types'
+import type { LoginResponseData, UserRole } from '../types'
 
 interface SessionState {
   isAuthenticated: boolean
   activeRole: UserRole
   sessionUserId: string
+  sessionDisplayName: string
+  sessionEmail: string
+  accessToken: string
   setActiveRole: (role: UserRole) => void
-  loginAsMockUser: () => void
+  setSession: (session: LoginResponseData) => void
   logout: () => void
 }
 
-const INITIAL_USER_ID = 'user-001'
+const initialSessionState = {
+  isAuthenticated: false,
+  activeRole: 'user' as UserRole,
+  sessionUserId: '',
+  sessionDisplayName: '',
+  sessionEmail: '',
+  accessToken: '',
+}
 
 export const useSessionStore = create<SessionState>((set) => ({
-  isAuthenticated: true,
-  activeRole: 'user',
-  sessionUserId: INITIAL_USER_ID,
+  ...initialSessionState,
   setActiveRole: (role) => set({ activeRole: role }),
-  loginAsMockUser: () =>
+  setSession: (session) =>
     set({
       isAuthenticated: true,
-      sessionUserId: INITIAL_USER_ID,
+      sessionUserId: session.userId,
+      sessionDisplayName: session.displayName,
+      sessionEmail: session.email,
+      accessToken: session.accessToken,
     }),
   logout: () =>
     set({
-      isAuthenticated: false,
-      sessionUserId: '',
+      ...initialSessionState,
     }),
 }))
+

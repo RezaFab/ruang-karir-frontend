@@ -46,14 +46,14 @@ export default function AssessmentResultPage() {
   if (!assessmentId) {
     return (
       <EmptyState
-        title="Belum ada hasil assessment"
-        description="Silakan isi assessment dulu untuk mendapatkan rekomendasi karier."
+        title="Belum ada hasil asesmen"
+        description="Silakan isi asesmen dulu untuk mendapatkan rekomendasi karier."
         action={
           <Link
             to="/assessment"
             className="rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
           >
-            Mulai Assessment
+            Mulai Asesmen
           </Link>
         }
       />
@@ -65,7 +65,7 @@ export default function AssessmentResultPage() {
   return (
     <section className="space-y-6">
       <SectionHeader
-        title="Assessment Result"
+        title="Hasil Asesmen"
         subtitle="AI menganalisis profil, skill, preferensi, dan tren industri untuk menyusun rekomendasi karier personal."
       />
 
@@ -73,8 +73,8 @@ export default function AssessmentResultPage() {
 
       {recommendationMutation.isError ? (
         <ErrorState
-          title="Gagal memuat hasil assessment"
-          description="Silakan coba generate ulang rekomendasi."
+          title="Gagal memuat hasil asesmen"
+          description="Silakan coba buat ulang rekomendasi."
           onRetry={() => {
             recommendationMutation.mutate({
               assessmentId,
@@ -87,12 +87,12 @@ export default function AssessmentResultPage() {
       {!recommendationMutation.isPending && !recommendationMutation.isError && result ? (
         <>
           <article className="rounded-2xl border border-border bg-surface p-6">
-            <h2 className="font-heading text-2xl font-semibold text-ink">Ringkasan AI Insight</h2>
+            <h2 className="font-heading text-2xl font-semibold text-ink">Ringkasan Insight AI</h2>
             <p className="mt-2 text-sm text-muted">{result.reasoning}</p>
 
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               <div className="rounded-xl border border-border bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Strengths</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Kekuatan</p>
                 <ul className="mt-2 space-y-1 text-sm text-ink">
                   {result.skillGapSummary.strengths.map((item) => (
                     <li key={item}>{item}</li>
@@ -101,14 +101,14 @@ export default function AssessmentResultPage() {
               </div>
 
               <div className="rounded-xl border border-border bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Skill Gap</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Kesenjangan Skill</p>
                 <ul className="mt-2 space-y-1 text-sm text-ink">
                   {result.skillGapSummary.missingSkills.map((item) => (
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
                 <p className="mt-3 text-xs font-medium uppercase tracking-[0.12em] text-muted">
-                  Urgency {result.skillGapSummary.urgency}
+                  Tingkat Urgensi {result.skillGapSummary.urgency}
                 </p>
               </div>
             </div>
@@ -118,7 +118,7 @@ export default function AssessmentResultPage() {
             <section className="space-y-4">
               <SectionHeader
                 title="Pilih Rekomendasi Karier"
-                subtitle="Pilih salah satu role untuk menghasilkan learning path detail."
+                subtitle="Pilih salah satu peran untuk menghasilkan jalur belajar detail."
               />
 
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -139,13 +139,13 @@ export default function AssessmentResultPage() {
                   disabled={!pendingSelectionId || recommendationMutation.isPending}
                   className="rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Generate Learning Path
+                  Buat Jalur Belajar
                 </button>
                 <Link
                   to="/assessment"
                   className="rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink"
                 >
-                  Edit Assessment
+                  Ubah Asesmen
                 </Link>
               </div>
             </section>
@@ -153,7 +153,7 @@ export default function AssessmentResultPage() {
 
           {result.mode === 'direct-path' ? (
             <section className="rounded-2xl border border-success/50 bg-success-soft p-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-success">Learning Path Ready</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-success">Jalur Belajar Siap</p>
               <h3 className="mt-2 font-heading text-2xl font-semibold text-ink">
                 Target Karier: {result.selectedCareerGoal.title}
               </h3>
@@ -166,13 +166,13 @@ export default function AssessmentResultPage() {
                   onClick={() => navigate(`/learning-path/${result.learningPathId}`)}
                   className="rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
                 >
-                  Lihat Learning Path Detail
+                  Lihat Detail Jalur Belajar
                 </button>
                 <Link
                   to="/dashboard"
                   className="rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink"
                 >
-                  Buka Progress Dashboard
+                  Buka Dasbor Progres
                 </Link>
               </div>
             </section>

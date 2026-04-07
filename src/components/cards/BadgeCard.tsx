@@ -13,7 +13,7 @@ export function BadgeCard({ badge }: BadgeCardProps) {
       }`}
     >
       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
-        {badge.isUnlocked ? 'Unlocked' : 'Locked'}
+        {badge.isUnlocked ? 'Terbuka' : 'Terkunci'}
       </p>
       <h3 className="mt-1 font-heading text-xl font-semibold text-ink">{badge.name}</h3>
       <p className="mt-2 text-sm text-muted">{badge.description}</p>

@@ -1,4 +1,8 @@
 export const endpoints = {
+  authLogin: '/api/auth/login',
+  authGoogleLogin: '/api/auth/google-login',
+  authRegister: '/api/auth/register',
+  authForgotPassword: '/api/auth/forgot-password',
   careerGoals: '/api/career-goals',
   assessments: '/api/assessments',
   recommendations: '/api/recommendations',
