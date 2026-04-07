@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --color-background: #f6f8fb;
+  --color-surface: #fdfefe;
+  --color-panel: #edf2f7;
+  --color-border: #d3deea;
+  --color-ink: #0e1e2e;
+  --color-muted: #53667a;
+  --color-primary: #1f6f8b;
+  --color-primary-soft: #e0f0f5;
+  --color-success: #1c7a4b;
+  --color-success-soft: #e4f6ec;
+  --color-danger: #a33d36;
+  --color-danger-soft: #fde9e8;
+
+  --font-heading: 'Space Grotesk', 'Avenir Next', sans-serif;
+  --font-sans: 'Plus Jakarta Sans', 'Manrope', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 8% -10%, rgba(80, 184, 165, 0.24), transparent 28%),
+    radial-gradient(circle at 98% 14%, rgba(248, 160, 122, 0.24), transparent 34%),
+    var(--color-background);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.input-field {
+  width: 100%;
+  border-radius: 0.85rem;
+  border: 1px solid var(--color-border);
+  background: white;
+  padding: 0.65rem 0.8rem;
+  font-size: 0.92rem;
+  color: var(--color-ink);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(31, 111, 139, 0.18);
+}
+
+.lozad {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.lozad.lozad-loaded {
+  opacity: 1;
+  transform: translateY(0);
+}

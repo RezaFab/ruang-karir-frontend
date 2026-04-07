@@ -1,0 +1,8 @@
+export { default as LandingPage } from './LandingPage'
+export { default as AssessmentPage } from './AssessmentPage'
+export { default as AssessmentResultPage } from './AssessmentResultPage'
+export { default as LearningPathDetailPage } from './LearningPathDetailPage'
+export { default as ProgressDashboardPage } from './ProgressDashboardPage'
+export { default as BadgesPage } from './BadgesPage'
+export { default as CompanyViewPage } from './CompanyViewPage'
+export { default as NotFoundPage } from './NotFoundPage'
