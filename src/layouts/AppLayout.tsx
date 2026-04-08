@@ -133,6 +133,10 @@ export function AppLayout() {
   }
 
   function handleRoleChange(role: UserRole) {
+    if (!enableRoleSwitch) {
+      return
+    }
+
     setActiveRole(role)
     setIsProfileMenuOpen(false)
     navigate(role === 'company' ? '/company/jobs' : '/dashboard', { replace: true })
@@ -221,19 +225,21 @@ export function AppLayout() {
                       <p className="mt-1 text-sm font-medium text-ink">{roleLabel[activeRole]}</p>
                     </div>
 
-                    <div className="mt-2 px-1">
-                      <label className="block space-y-1.5">
-                        <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
-                          Ganti role demo
-                        </span>
-                        <AppDropdown
-                          value={activeRole}
-                          options={roleOptions}
-                          ariaLabel="Pilih role demo"
-                          onChange={(value) => handleRoleChange(value as UserRole)}
-                        />
-                      </label>
-                    </div>
+                    {enableRoleSwitch ? (
+                      <div className="mt-2 px-1">
+                        <label className="block space-y-1.5">
+                          <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+                            Ganti role demo
+                          </span>
+                          <AppDropdown
+                            value={activeRole}
+                            options={roleOptions}
+                            ariaLabel="Pilih role demo"
+                            onChange={(value) => handleRoleChange(value as UserRole)}
+                          />
+                        </label>
+                      </div>
+                    ) : null}
 
                     <button
                       type="button"
@@ -284,3 +290,4 @@ export function AppLayout() {
     </div>
   )
 }
+  const enableRoleSwitch = import.meta.env.VITE_ENABLE_ROLE_SWITCH === 'true'

@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { CareerRecommendationCard, EmptyState, ErrorState, LoadingSkeleton, SectionHeader } from '../components'
 import { useRecommendationMutation } from '../hooks/useCareerApi'
 import { useAssessmentStore } from '../store'
+
+const recommendationPageSizeOptions = [10, 25, 50, 100] as const
 
 export default function AssessmentResultPage() {
   const navigate = useNavigate()
@@ -13,6 +15,11 @@ export default function AssessmentResultPage() {
 
   const assessmentId = searchParams.get('assessmentId') ?? latestAssessmentId
   const [pendingSelectionId, setPendingSelectionId] = useState<string | undefined>(selectedCareerGoalId)
+  const [recommendationSearchInput, setRecommendationSearchInput] = useState('')
+  const [showRecommendationFilters, setShowRecommendationFilters] = useState(false)
+  const [minMatchScoreFilter, setMinMatchScoreFilter] = useState<0 | 70 | 85>(0)
+  const [recommendationPage, setRecommendationPage] = useState(1)
+  const [recommendationPageSize, setRecommendationPageSize] = useState<number>(recommendationPageSizeOptions[0])
   const hasRequestedInitial = useRef(false)
 
   const recommendationMutation = useRecommendationMutation()
@@ -43,6 +50,72 @@ export default function AssessmentResultPage() {
     })
   }
 
+  const result = recommendationMutation.data
+  const recommendationList = useMemo(() => {
+    if (!result || result.mode !== 'need-goal-selection') {
+      return []
+    }
+
+    const normalizedSearch = recommendationSearchInput.trim().toLowerCase()
+
+    return result.recommendations.filter((recommendation) => {
+      if (recommendation.matchScore < minMatchScoreFilter) {
+        return false
+      }
+
+      if (!normalizedSearch) {
+        return true
+      }
+
+      const searchableText = [
+        recommendation.title,
+        ...recommendation.reasons,
+        ...recommendation.keySkillsToBuild,
+      ]
+        .join(' ')
+        .toLowerCase()
+      return searchableText.includes(normalizedSearch)
+    })
+  }, [minMatchScoreFilter, recommendationSearchInput, result])
+  const recommendationTotalItems = recommendationList.length
+  const recommendationTotalPages = Math.max(1, Math.ceil(recommendationTotalItems / recommendationPageSize))
+  const activeRecommendationPage = Math.min(recommendationPage, recommendationTotalPages)
+  const paginatedRecommendations = useMemo(() => {
+    const startIndex = (activeRecommendationPage - 1) * recommendationPageSize
+    return recommendationList.slice(startIndex, startIndex + recommendationPageSize)
+  }, [activeRecommendationPage, recommendationList, recommendationPageSize])
+
+  function handleRecommendationSearchChange(value: string) {
+    setRecommendationSearchInput(value)
+    setRecommendationPage(1)
+  }
+
+  function handleRecommendationPageSizeChange(value: number) {
+    setRecommendationPageSize(value)
+    setRecommendationPage(1)
+  }
+
+  function handleRecommendationMatchScoreFilter(value: 0 | 70 | 85) {
+    setMinMatchScoreFilter(value)
+    setRecommendationPage(1)
+  }
+
+  function handleRecommendationPreviousPage() {
+    if (activeRecommendationPage <= 1) {
+      return
+    }
+
+    setRecommendationPage(activeRecommendationPage - 1)
+  }
+
+  function handleRecommendationNextPage() {
+    if (activeRecommendationPage >= recommendationTotalPages) {
+      return
+    }
+
+    setRecommendationPage(activeRecommendationPage + 1)
+  }
+
   if (!assessmentId) {
     return (
       <EmptyState
@@ -59,8 +132,6 @@ export default function AssessmentResultPage() {
       />
     )
   }
-
-  const result = recommendationMutation.data
 
   return (
     <section className="space-y-6">
@@ -124,16 +195,112 @@ export default function AssessmentResultPage() {
                 subtitle="Pilih salah satu peran untuk menghasilkan jalur belajar detail."
               />
 
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {result.recommendations.map((recommendation) => (
-                  <CareerRecommendationCard
-                    key={recommendation.careerGoalId}
-                    recommendation={recommendation}
-                    isSelected={pendingSelectionId === recommendation.careerGoalId}
-                    onSelect={(careerGoalId) => setPendingSelectionId(careerGoalId)}
-                  />
-                ))}
-              </div>
+              <section className="space-y-3 rounded-2xl border border-border bg-surface p-4">
+                <div className="flex flex-wrap items-end justify-between gap-3">
+                  <label className="w-full max-w-xl space-y-1.5 text-sm">
+                    <span className="font-medium text-ink">Cari rekomendasi</span>
+                    <input
+                      value={recommendationSearchInput}
+                      onChange={(event) => handleRecommendationSearchChange(event.target.value)}
+                      placeholder="Cari role atau skill utama"
+                      className="input-field"
+                    />
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowRecommendationFilters((previous) => !previous)}
+                    className="rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:bg-panel"
+                  >
+                    {showRecommendationFilters ? 'Tutup Filter' : 'Filter'}
+                  </button>
+                </div>
+
+                {showRecommendationFilters ? (
+                  <div className="rounded-xl border border-border bg-white p-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+                      Minimum Match Score
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {([0, 70, 85] as const).map((score) => (
+                        <button
+                          key={score}
+                          type="button"
+                          onClick={() => handleRecommendationMatchScoreFilter(score)}
+                          className={`rounded-full border px-3 py-1.5 text-sm transition ${
+                            minMatchScoreFilter === score
+                              ? 'border-primary bg-primary-soft text-primary'
+                              : 'border-border text-muted hover:bg-panel'
+                          }`}
+                        >
+                          {score === 0 ? 'Semua' : `${score}+`}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </section>
+
+              {recommendationTotalItems === 0 ? (
+                <EmptyState
+                  title="Tidak ada rekomendasi yang cocok"
+                  description="Coba ubah kata kunci pencarian."
+                />
+              ) : (
+                <>
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    {paginatedRecommendations.map((recommendation) => (
+                      <CareerRecommendationCard
+                        key={recommendation.careerGoalId}
+                        recommendation={recommendation}
+                        isSelected={pendingSelectionId === recommendation.careerGoalId}
+                        onSelect={(careerGoalId) => setPendingSelectionId(careerGoalId)}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+                    <div className="flex flex-wrap items-center gap-3 text-muted">
+                      <label className="flex items-center">
+                        <select
+                          value={recommendationPageSize}
+                          onChange={(event) => handleRecommendationPageSizeChange(Number(event.target.value))}
+                          aria-label="Jumlah data per halaman"
+                          className="input-field min-w-[100px] py-1.5"
+                        >
+                          {recommendationPageSizeOptions.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <span>
+                        Menampilkan {paginatedRecommendations.length} dari {recommendationTotalItems} rekomendasi
+                        | Halaman {activeRecommendationPage}/{recommendationTotalPages}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleRecommendationPreviousPage}
+                        disabled={activeRecommendationPage <= 1}
+                        className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium text-ink transition hover:bg-panel disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Prev
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleRecommendationNextPage}
+                        disabled={activeRecommendationPage >= recommendationTotalPages}
+                        className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium text-ink transition hover:bg-panel disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
 
               <div className="flex flex-wrap gap-3">
                 <button

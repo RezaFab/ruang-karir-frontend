@@ -7,9 +7,19 @@ export const queryKeys = {
   companyCandidates: () => ['company', 'candidates'] as const,
   jobRecommendations: () => ['jobs', 'recommendations'] as const,
   companyJobs: () => ['company', 'jobs'] as const,
+  companyJobById: (jobId: string) => ['company', 'jobs', jobId] as const,
   skills: (search: string, page: number, length: number) => ['skills', search, page, length] as const,
   recommendations: (assessmentId: string, selectedCareerGoalId?: string) =>
     ['recommendations', assessmentId, selectedCareerGoalId ?? 'none'] as const,
   learningPath: (learningPathId: string) => ['learning-path', learningPathId] as const,
+  learningPathModules: (
+    learningPathId: string,
+    page: number,
+    length: number,
+    search: string,
+    status: string,
+    sort: string,
+    order: string,
+  ) => ['learning-path-modules', learningPathId, page, length, search, status, sort, order] as const,
   progressSummary: (learningPathId: string) => ['progress-summary', learningPathId] as const,
 } as const

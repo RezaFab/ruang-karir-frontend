@@ -10,6 +10,7 @@ import type {
   JobRecommendation,
   JobSearchInsight,
   LearningPath,
+  LearningModule,
   ProgressSummary,
   SkillCatalogItem,
   SkillGapSummary,
@@ -43,10 +44,46 @@ export interface RecommendationRequest {
   selectedCareerGoalId?: string
 }
 
-export interface GetSkillsRequest {
+export interface ListQueryParams {
   search?: string
   page?: number
   length?: number
+}
+
+export type GetSkillsRequest = ListQueryParams
+
+export interface GetAssessmentsMeRequest extends ListQueryParams {
+  hasCareerGoal?: 'all' | 'true' | 'false'
+  workMode?: 'remote' | 'hybrid' | 'onsite'
+  jobType?: 'full-time' | 'contract' | 'freelance'
+}
+
+export interface GetBadgesRequest extends ListQueryParams {
+  status?: 'all' | 'unlocked' | 'locked'
+}
+
+export interface GetCompanyCandidatesRequest extends ListQueryParams {
+  status?: 'all' | 'ready' | 'needs-upskilling'
+  sort?: 'readiness' | 'name'
+  order?: 'asc' | 'desc'
+}
+
+export interface GetJobRecommendationsRequest extends ListQueryParams {
+  workMode?: 'remote' | 'hybrid' | 'onsite'
+  jobType?: 'full-time' | 'contract' | 'freelance'
+  minMatchScore?: number
+}
+
+export interface GetCompanyJobsRequest extends ListQueryParams {
+  status?: 'all' | 'open' | 'draft' | 'closed'
+  workMode?: 'remote' | 'hybrid' | 'onsite'
+  jobType?: 'full-time' | 'contract' | 'freelance'
+}
+
+export interface GetLearningPathModulesRequest extends ListQueryParams {
+  status?: 'all' | 'completed' | 'pending'
+  sort?: 'sequence' | 'duration' | 'provider'
+  order?: 'asc' | 'desc'
 }
 
 export interface CreateSkillRequest {
@@ -106,9 +143,25 @@ export interface CreateCompanyJobPostRequest {
   description: string
 }
 
+export interface UpdateCompanyJobPostRequest {
+  title?: string
+  location?: string
+  workMode?: 'remote' | 'hybrid' | 'onsite'
+  jobType?: 'full-time' | 'contract' | 'freelance'
+  salaryRange?: string
+  requiredSkills?: string[]
+  description?: string
+  status?: 'open' | 'draft' | 'closed'
+}
+
 export interface JobRecommendationsResponseData {
   insight: JobSearchInsight
   recommendations: JobRecommendation[]
+}
+
+export interface DeleteCompanyJobPostResponseData {
+  success: boolean
+  id?: string
 }
 
 export interface LoginRequest {
@@ -175,17 +228,25 @@ export interface LogoutResponseData {
 export type GetUserProfileResponse = ApiResponse<UserProfile>
 export type GetCareerGoalsResponse = ApiResponse<CareerGoal[]>
 export type GetMyAssessmentsResponse = ApiResponse<AssessmentHistoryItem[]>
+export type GetMyAssessmentsPaginatedResponse = ApiResponse<PaginatedListData<AssessmentHistoryItem>>
 export type SubmitAssessmentResponse = ApiResponse<SubmitAssessmentResponseData>
 export type RecommendationResponse = ApiResponse<RecommendationResponseData>
 export type GetLearningPathResponse = ApiResponse<LearningPath>
+export type GetLearningPathModulesResponse = ApiResponse<PaginatedListData<LearningModule>>
 export type UpdateLearningProgressResponse = ApiResponse<UpdateLearningProgressResponseData>
 export type GetBadgesResponse = ApiResponse<Badge[]>
+export type GetBadgesPaginatedResponse = ApiResponse<PaginatedListData<Badge>>
 export type GetIndustryTrendsResponse = ApiResponse<IndustryTrend[]>
 export type GetCompanyCandidatesResponse = ApiResponse<CompanyCandidateSummary[]>
+export type GetCompanyCandidatesPaginatedResponse = ApiResponse<PaginatedListData<CompanyCandidateSummary>>
 export type GetProgressSummaryResponse = ApiResponse<ProgressSummary>
 export type GetJobRecommendationsResponse = ApiResponse<JobRecommendationsResponseData>
 export type GetCompanyJobPostsResponse = ApiResponse<CompanyJobPost[]>
+export type GetCompanyJobPostsPaginatedResponse = ApiResponse<PaginatedListData<CompanyJobPost>>
+export type GetCompanyJobByIdResponse = ApiResponse<CompanyJobPost>
 export type CreateCompanyJobPostResponse = ApiResponse<CompanyJobPost>
+export type UpdateCompanyJobPostResponse = ApiResponse<CompanyJobPost>
+export type DeleteCompanyJobPostResponse = ApiResponse<DeleteCompanyJobPostResponseData>
 export type GetSkillsResponse = ApiResponse<PaginatedListData<SkillCatalogItem>>
 export type CreateSkillResponse = ApiResponse<SkillCatalogItem>
 export type LoginResponse = ApiResponse<LoginResponseData>

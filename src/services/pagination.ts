@@ -1,10 +1,15 @@
-import type { GetSkillsRequest, PaginatedListData, PaginationData } from '../types'
+import type { ListQueryParams, PaginatedListData, PaginationData } from '../types'
 
 const DEFAULT_PAGE = 1
-const DEFAULT_LENGTH = 20
-const MAX_LENGTH = 50
+const DEFAULT_LENGTH = 10
+const MAX_LENGTH = 100
 
 type GenericRecord = Record<string, unknown>
+type QueryValue = string | number | boolean | null | undefined
+
+export interface NormalizedListResult<T> extends PaginatedListData<T> {
+  isPaginated: boolean
+}
 
 function asRecord(value: unknown): GenericRecord | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -19,11 +24,18 @@ function toInteger(
   fallback: number,
   options?: { min?: number; max?: number },
 ): number {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
+  const rawNumber =
+    typeof value === 'number'
+      ? value
+      : typeof value === 'string' && value.trim()
+        ? Number(value)
+        : Number.NaN
+
+  if (!Number.isFinite(rawNumber)) {
     return fallback
   }
 
-  const normalized = Math.floor(value)
+  const normalized = Math.floor(rawNumber)
   const min = options?.min ?? Number.NEGATIVE_INFINITY
   const max = options?.max ?? Number.POSITIVE_INFINITY
 
@@ -31,7 +43,7 @@ function toInteger(
 }
 
 function createFallbackPagination(page: number, length: number, total: number): PaginationData {
-  const totalPages = total > 0 ? Math.ceil(total / length) : 0
+  const totalPages = total > 0 ? Math.ceil(total / length) : 1
 
   return {
     page,
@@ -43,7 +55,28 @@ function createFallbackPagination(page: number, length: number, total: number): 
   }
 }
 
-export function normalizeListQueryParams(params?: GetSkillsRequest): Required<GetSkillsRequest> {
+function normalizeItems<T>(
+  value: unknown,
+  mapItem?: (value: unknown) => T | null,
+): T[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  if (!mapItem) {
+    return value as T[]
+  }
+
+  return value
+    .map((item) => mapItem(item))
+    .filter((item): item is T => item !== null)
+}
+
+export function isPaginationRequested(params?: ListQueryParams): boolean {
+  return Boolean(params && (typeof params.page === 'number' || typeof params.length === 'number'))
+}
+
+export function normalizeListQueryParams(params?: ListQueryParams): Required<ListQueryParams> {
   const normalizedSearch = params?.search?.trim() ?? ''
 
   return {
@@ -53,7 +86,10 @@ export function normalizeListQueryParams(params?: GetSkillsRequest): Required<Ge
   }
 }
 
-export function buildListQueryString(params: Required<GetSkillsRequest>): string {
+export function buildListQueryString(
+  params: Required<ListQueryParams>,
+  extraParams: Record<string, QueryValue> = {},
+): string {
   const searchParams = new URLSearchParams()
 
   if (params.search) {
@@ -63,25 +99,44 @@ export function buildListQueryString(params: Required<GetSkillsRequest>): string
   searchParams.set('page', String(params.page))
   searchParams.set('length', String(params.length))
 
+  Object.entries(extraParams).forEach(([key, rawValue]) => {
+    if (rawValue === undefined || rawValue === null) {
+      return
+    }
+
+    if (typeof rawValue === 'string') {
+      const normalizedValue = rawValue.trim()
+      if (!normalizedValue || normalizedValue.toLowerCase() === 'all') {
+        return
+      }
+      searchParams.set(key, normalizedValue)
+      return
+    }
+
+    searchParams.set(key, String(rawValue))
+  })
+
   return searchParams.toString()
 }
 
-export function normalizePaginatedListData<T>(
+export function normalizeLegacyOrPaginatedListData<T>(
   rawData: unknown,
-  fallbackParams: Required<GetSkillsRequest>,
-): PaginatedListData<T> {
+  fallbackParams: Required<ListQueryParams>,
+  mapItem?: (value: unknown) => T | null,
+): NormalizedListResult<T> {
   if (Array.isArray(rawData)) {
+    const items = normalizeItems<T>(rawData, mapItem)
     return {
-      items: rawData as T[],
-      pagination: createFallbackPagination(fallbackParams.page, fallbackParams.length, rawData.length),
+      items,
+      pagination: createFallbackPagination(fallbackParams.page, fallbackParams.length, items.length),
+      isPaginated: false,
     }
   }
 
   const dataRecord = asRecord(rawData)
   const itemsRaw = dataRecord?.items
   const paginationRecord = asRecord(dataRecord?.pagination)
-
-  const items = Array.isArray(itemsRaw) ? (itemsRaw as T[]) : []
+  const items = normalizeItems<T>(itemsRaw, mapItem)
   const fallbackPagination = createFallbackPagination(
     fallbackParams.page,
     fallbackParams.length,
@@ -92,6 +147,7 @@ export function normalizePaginatedListData<T>(
     return {
       items,
       pagination: fallbackPagination,
+      isPaginated: false,
     }
   }
 
@@ -101,7 +157,7 @@ export function normalizePaginatedListData<T>(
     max: MAX_LENGTH,
   })
   const total = toInteger(paginationRecord.total, fallbackPagination.total, { min: 0 })
-  const totalPages = toInteger(paginationRecord.totalPages, fallbackPagination.totalPages, { min: 0 })
+  const totalPages = toInteger(paginationRecord.totalPages, fallbackPagination.totalPages, { min: 1 })
   const hasNextPage =
     typeof paginationRecord.hasNextPage === 'boolean'
       ? paginationRecord.hasNextPage
@@ -121,5 +177,18 @@ export function normalizePaginatedListData<T>(
       hasNextPage,
       hasPrevPage,
     },
+    isPaginated: true,
+  }
+}
+
+export function normalizePaginatedListData<T>(
+  rawData: unknown,
+  fallbackParams: Required<ListQueryParams>,
+  mapItem?: (value: unknown) => T | null,
+): PaginatedListData<T> {
+  const normalized = normalizeLegacyOrPaginatedListData(rawData, fallbackParams, mapItem)
+  return {
+    items: normalized.items,
+    pagination: normalized.pagination,
   }
 }

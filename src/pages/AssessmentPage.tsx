@@ -26,7 +26,8 @@ import {
   validateAssessmentStep,
 } from '../utils'
 
-const skillLengthOptions = [10, 20, 50] as const
+const skillLengthOptions = [10, 25, 50, 100] as const
+const historyPageSizeOptions = [10, 25, 50, 100] as const
 
 function parsePositiveIntParam(value: string | null, fallback: number): number {
   if (!value) {
@@ -69,7 +70,7 @@ export default function AssessmentPage() {
 
   const initialSkillSearch = searchParams.get('search') ?? ''
   const initialSkillPage = parsePositiveIntParam(searchParams.get('page'), 1)
-  const initialSkillLength = parseSkillLengthParam(searchParams.get('length'), 20)
+  const initialSkillLength = parseSkillLengthParam(searchParams.get('length'), 10)
 
   const [currentStep, setCurrentStep] = useState(0)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -78,6 +79,11 @@ export default function AssessmentPage() {
   const [skillPage, setSkillPage] = useState(initialSkillPage)
   const [skillLength, setSkillLength] = useState(initialSkillLength)
   const [skillActionError, setSkillActionError] = useState('')
+  const [historySearchInput, setHistorySearchInput] = useState('')
+  const [historyGoalFilter, setHistoryGoalFilter] = useState<'all' | 'with-goal' | 'without-goal'>('all')
+  const [historyPage, setHistoryPage] = useState(1)
+  const [historyPageSize, setHistoryPageSize] = useState<number>(historyPageSizeOptions[0])
+  const [showHistoryFilters, setShowHistoryFilters] = useState(false)
   const activeRole = useSessionStore((state) => state.activeRole)
   const isAdminSkillTableVisible = activeRole === 'admin'
 
@@ -177,6 +183,48 @@ export default function AssessmentPage() {
     () => new Map((careerGoals ?? []).map((goal) => [goal.id, goal.title])),
     [careerGoals],
   )
+  const filteredAssessmentHistory = useMemo(() => {
+    const normalizedSearch = historySearchInput.trim().toLowerCase()
+
+    return sortedAssessmentHistory.filter((item) => {
+      if (historyGoalFilter === 'with-goal' && !item.hasCareerGoal) {
+        return false
+      }
+
+      if (historyGoalFilter === 'without-goal' && item.hasCareerGoal) {
+        return false
+      }
+
+      if (!normalizedSearch) {
+        return true
+      }
+
+      const careerGoalTitle =
+        item.careerGoalId ? careerGoalTitleMap.get(item.careerGoalId) ?? '' : ''
+      const searchableText = [
+        item.currentRole ?? '',
+        careerGoalTitle,
+        item.workMode ?? '',
+        item.jobType ?? '',
+        item.learningPace ?? '',
+        ...item.preferredIndustries,
+        ...item.existingSkills,
+      ]
+        .join(' ')
+        .toLowerCase()
+
+      return searchableText.includes(normalizedSearch)
+    })
+  }, [careerGoalTitleMap, historyGoalFilter, historySearchInput, sortedAssessmentHistory])
+  const historyTotalItems = filteredAssessmentHistory.length
+  const historyTotalPages = Math.max(1, Math.ceil(historyTotalItems / historyPageSize))
+  const activeHistoryPage = Math.min(historyPage, historyTotalPages)
+  const paginatedAssessmentHistory = useMemo(() => {
+    const startIndex = (activeHistoryPage - 1) * historyPageSize
+    return filteredAssessmentHistory.slice(startIndex, startIndex + historyPageSize)
+  }, [activeHistoryPage, filteredAssessmentHistory, historyPageSize])
+  const hasHistoryPrevPage = activeHistoryPage > 1
+  const hasHistoryNextPage = activeHistoryPage < historyTotalPages
   const historyErrorMessage =
     historyErrorObject instanceof Error
       ? historyErrorObject.message
@@ -329,6 +377,37 @@ export default function AssessmentPage() {
     setSkillPage((previous) => previous + 1)
   }
 
+  function handleHistorySearchChange(value: string) {
+    setHistorySearchInput(value)
+    setHistoryPage(1)
+  }
+
+  function handleHistoryGoalFilterChange(value: 'all' | 'with-goal' | 'without-goal') {
+    setHistoryGoalFilter(value)
+    setHistoryPage(1)
+  }
+
+  function handleHistoryPageSizeChange(value: number) {
+    setHistoryPageSize(value)
+    setHistoryPage(1)
+  }
+
+  function handleHistoryPreviousPage() {
+    if (!hasHistoryPrevPage) {
+      return
+    }
+
+    setHistoryPage(Math.max(activeHistoryPage - 1, 1))
+  }
+
+  function handleHistoryNextPage() {
+    if (!hasHistoryNextPage) {
+      return
+    }
+
+    setHistoryPage(Math.min(activeHistoryPage + 1, historyTotalPages))
+  }
+
   function handleNext() {
     const validationErrors = validateAssessmentStep(currentStep as AssessmentStep, draft)
     setErrors(validationErrors)
@@ -427,6 +506,72 @@ export default function AssessmentPage() {
           />
         ) : null}
 
+        {!historyLoading && !historyError && sortedAssessmentHistory.length > 0 ? (
+          <div className="space-y-3 rounded-2xl border border-border bg-panel/50 p-4">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <label className="w-full max-w-xl space-y-1.5 text-sm">
+                <span className="font-medium text-ink">Cari riwayat</span>
+                <input
+                  value={historySearchInput}
+                  onChange={(event) => handleHistorySearchChange(event.target.value)}
+                  placeholder="Cari role, skill, atau industri"
+                  className="input-field"
+                />
+              </label>
+
+              <button
+                type="button"
+                onClick={() => setShowHistoryFilters((previous) => !previous)}
+                className="rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:bg-panel"
+              >
+                {showHistoryFilters ? 'Tutup Filter' : 'Filter'}
+              </button>
+            </div>
+
+            {showHistoryFilters ? (
+              <div className="rounded-xl border border-border bg-white p-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Filter Target Karier</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleHistoryGoalFilterChange('all')}
+                    className={`rounded-full border px-3 py-1.5 text-sm transition ${
+                      historyGoalFilter === 'all'
+                        ? 'border-primary bg-primary-soft text-primary'
+                        : 'border-border text-muted hover:bg-panel'
+                    }`}
+                  >
+                    Semua
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleHistoryGoalFilterChange('with-goal')}
+                    className={`rounded-full border px-3 py-1.5 text-sm transition ${
+                      historyGoalFilter === 'with-goal'
+                        ? 'border-primary bg-primary-soft text-primary'
+                        : 'border-border text-muted hover:bg-panel'
+                    }`}
+                  >
+                    Sudah pilih target
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleHistoryGoalFilterChange('without-goal')}
+                    className={`rounded-full border px-3 py-1.5 text-sm transition ${
+                      historyGoalFilter === 'without-goal'
+                        ? 'border-primary bg-primary-soft text-primary'
+                        : 'border-border text-muted hover:bg-panel'
+                    }`}
+                  >
+                    Belum pilih target
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+          </div>
+        ) : null}
+
         {!historyLoading && !historyError && sortedAssessmentHistory.length === 0 ? (
           <EmptyState
             title="Belum ada riwayat asesmen"
@@ -434,19 +579,69 @@ export default function AssessmentPage() {
           />
         ) : null}
 
-        {!historyLoading && !historyError && sortedAssessmentHistory.length > 0 ? (
+        {!historyLoading && !historyError && sortedAssessmentHistory.length > 0 && historyTotalItems === 0 ? (
+          <EmptyState
+            title="Tidak ada riwayat yang cocok"
+            description="Coba ubah kata kunci pencarian atau filter target karier."
+          />
+        ) : null}
+
+        {!historyLoading && !historyError && historyTotalItems > 0 ? (
           <div className="grid gap-3 md:grid-cols-2">
-            {sortedAssessmentHistory.map((item, index) => (
+            {paginatedAssessmentHistory.map((item) => (
               <AssessmentHistoryCard
                 key={item.assessmentId}
                 item={item}
-                isLatest={index === 0}
+                isLatest={latestAssessment?.assessmentId === item.assessmentId}
                 careerGoalTitle={
                   item.careerGoalId ? careerGoalTitleMap.get(item.careerGoalId) : undefined
                 }
                 onOpenResult={handleOpenResult}
               />
             ))}
+          </div>
+        ) : null}
+
+        {!historyLoading && !historyError && historyTotalItems > 0 ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+            <div className="flex flex-wrap items-center gap-3 text-muted">
+              <label className="flex items-center">
+                <select
+                  value={historyPageSize}
+                  onChange={(event) => handleHistoryPageSizeChange(Number(event.target.value))}
+                  aria-label="Jumlah data per halaman"
+                  className="input-field min-w-[100px] py-1.5"
+                >
+                  {historyPageSizeOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <span>
+                Menampilkan {paginatedAssessmentHistory.length} dari {historyTotalItems} riwayat | Halaman{' '}
+                {activeHistoryPage}/{historyTotalPages}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleHistoryPreviousPage}
+                disabled={!hasHistoryPrevPage}
+                className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium text-ink transition hover:bg-panel disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Prev
+              </button>
+              <button
+                type="button"
+                onClick={handleHistoryNextPage}
+                disabled={!hasHistoryNextPage}
+                className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium text-ink transition hover:bg-panel disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
           </div>
         ) : null}
       </section>
@@ -673,7 +868,7 @@ export default function AssessmentPage() {
 
             {isAdminSkillTableVisible ? (
               <div className="rounded-2xl border border-border bg-surface p-4">
-                <div className="flex flex-wrap items-end justify-between gap-3">
+                <div>
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
                       Admin - Daftar Skill
@@ -682,21 +877,6 @@ export default function AssessmentPage() {
                       Tabel ini khusus admin untuk memonitor daftar skill yang tersimpan.
                     </p>
                   </div>
-
-                  <label className="space-y-1.5 text-sm">
-                    <span className="font-medium text-ink">Jumlah per halaman</span>
-                    <select
-                      value={skillLength}
-                      onChange={(event) => handleSkillLengthChange(Number(event.target.value))}
-                      className="input-field min-w-[120px]"
-                    >
-                      {skillLengthOptions.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
                 </div>
 
                 <div className="mt-3 overflow-x-auto rounded-xl border border-border">
@@ -730,12 +910,28 @@ export default function AssessmentPage() {
                   </table>
                 </div>
 
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm">
-                  <p className="text-muted">
-                    Total {skillCatalogPagination?.total ?? 0} | Halaman{' '}
-                    {skillCatalogPagination?.page ?? skillPage}/
-                    {Math.max(skillCatalogPagination?.totalPages ?? 1, 1)}
-                  </p>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm">
+                  <div className="flex flex-wrap items-center gap-3 text-muted">
+                    <label className="flex items-center">
+                      <select
+                        value={skillLength}
+                        onChange={(event) => handleSkillLengthChange(Number(event.target.value))}
+                        aria-label="Jumlah data per halaman"
+                        className="input-field min-w-[100px] py-1.5"
+                      >
+                        {skillLengthOptions.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <span>
+                      Total {skillCatalogPagination?.total ?? 0} | Halaman{' '}
+                      {skillCatalogPagination?.page ?? skillPage}/
+                      {Math.max(skillCatalogPagination?.totalPages ?? 1, 1)}
+                    </span>
+                  </div>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"

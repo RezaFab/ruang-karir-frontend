@@ -3,9 +3,11 @@ import { careerApiService, queryKeys } from '../services'
 import type {
   CreateCompanyJobPostRequest,
   CreateSkillRequest,
+  GetLearningPathModulesRequest,
   GetSkillsRequest,
   RecommendationRequest,
   SubmitAssessmentRequest,
+  UpdateCompanyJobPostRequest,
   UpdateLearningProgressRequest,
 } from '../types'
 
@@ -89,10 +91,25 @@ export function useCompanyJobsQuery() {
   })
 }
 
+export function useCompanyJobByIdQuery(jobId: string | undefined) {
+  return useQuery({
+    queryKey: jobId ? queryKeys.companyJobById(jobId) : ['company', 'jobs', 'empty'],
+    queryFn: async () => {
+      if (!jobId) {
+        throw new Error('Job id is required.')
+      }
+
+      const response = await careerApiService.getCompanyJobById(jobId)
+      return response.data
+    },
+    enabled: Boolean(jobId),
+  })
+}
+
 export function useSkillsQuery(params: GetSkillsRequest, enabled = true) {
   const search = params.search?.trim() ?? ''
   const page = typeof params.page === 'number' ? params.page : 1
-  const length = typeof params.length === 'number' ? params.length : 20
+  const length = typeof params.length === 'number' ? params.length : 10
 
   return useQuery({
     queryKey: queryKeys.skills(search, page, length),
@@ -117,6 +134,41 @@ export function useLearningPathQuery(pathId: string | undefined) {
       return response.data
     },
     enabled: Boolean(pathId),
+  })
+}
+
+export function useLearningPathModulesQuery(
+  pathId: string | undefined,
+  params: GetLearningPathModulesRequest,
+  enabled = true,
+) {
+  const search = params.search?.trim() ?? ''
+  const page = typeof params.page === 'number' ? params.page : 1
+  const length = typeof params.length === 'number' ? params.length : 10
+  const status = params.status ?? 'all'
+  const sort = params.sort ?? 'sequence'
+  const order = params.order ?? 'asc'
+
+  return useQuery({
+    queryKey: pathId
+      ? queryKeys.learningPathModules(pathId, page, length, search, status, sort, order)
+      : ['learning-path-modules', 'empty'],
+    queryFn: async () => {
+      if (!pathId) {
+        throw new Error('Learning path id is required.')
+      }
+
+      const response = await careerApiService.getLearningPathModules(pathId, {
+        search,
+        page,
+        length,
+        status,
+        sort,
+        order,
+      })
+      return response.data
+    },
+    enabled: Boolean(pathId) && enabled,
   })
 }
 
@@ -176,6 +228,7 @@ export function useUpdateLearningPathProgressMutation(pathId: string | undefined
       }
 
       queryClient.invalidateQueries({ queryKey: queryKeys.learningPath(pathId) })
+      queryClient.invalidateQueries({ queryKey: ['learning-path-modules', pathId] })
       queryClient.invalidateQueries({ queryKey: queryKeys.progressSummary(pathId) })
       queryClient.invalidateQueries({ queryKey: queryKeys.badges() })
     },
@@ -192,6 +245,36 @@ export function useCreateCompanyJobMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.companyJobs() })
+    },
+  })
+}
+
+export function useUpdateCompanyJobMutation(jobId: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: UpdateCompanyJobPostRequest) => {
+      const response = await careerApiService.updateCompanyJob(jobId, payload)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.companyJobs() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.companyJobById(jobId) })
+    },
+  })
+}
+
+export function useDeleteCompanyJobMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (jobId: string) => {
+      const response = await careerApiService.deleteCompanyJob(jobId)
+      return response.data
+    },
+    onSuccess: (_result, jobId) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.companyJobs() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.companyJobById(jobId) })
     },
   })
 }
