@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { careerApiService, queryKeys } from '../services'
 import type {
   CreateCompanyJobPostRequest,
+  CreateSkillRequest,
+  GetSkillsRequest,
   RecommendationRequest,
   SubmitAssessmentRequest,
   UpdateLearningProgressRequest,
@@ -84,6 +86,22 @@ export function useCompanyJobsQuery() {
       const response = await careerApiService.getCompanyJobs()
       return response.data
     },
+  })
+}
+
+export function useSkillsQuery(params: GetSkillsRequest, enabled = true) {
+  const search = params.search?.trim() ?? ''
+  const page = typeof params.page === 'number' ? params.page : 1
+  const length = typeof params.length === 'number' ? params.length : 20
+
+  return useQuery({
+    queryKey: queryKeys.skills(search, page, length),
+    queryFn: async () => {
+      const response = await careerApiService.getSkills({ search, page, length })
+      return response.data
+    },
+    staleTime: 1000 * 60 * 5,
+    enabled,
   })
 }
 
@@ -174,6 +192,20 @@ export function useCreateCompanyJobMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.companyJobs() })
+    },
+  })
+}
+
+export function useCreateSkillMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: CreateSkillRequest) => {
+      const response = await careerApiService.createSkill(payload)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['skills'] })
     },
   })
 }

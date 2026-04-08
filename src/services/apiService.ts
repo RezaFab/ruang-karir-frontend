@@ -1,6 +1,9 @@
 import type {
   CreateCompanyJobPostRequest,
   CreateCompanyJobPostResponse,
+  CreateSkillRequest,
+  CreateSkillResponse,
+  GetSkillsRequest,
   GetBadgesResponse,
   GetCareerGoalsResponse,
   GetCompanyJobPostsResponse,
@@ -10,6 +13,7 @@ import type {
   GetLearningPathResponse,
   GetMyAssessmentsResponse,
   GetProgressSummaryResponse,
+  GetSkillsResponse,
   GetUserProfileResponse,
   RecommendationRequest,
   RecommendationResponse,
@@ -36,5 +40,7 @@ export interface CareerApiService {
   getJobRecommendations(): Promise<GetJobRecommendationsResponse>
   getCompanyJobs(): Promise<GetCompanyJobPostsResponse>
   createCompanyJob(payload: CreateCompanyJobPostRequest): Promise<CreateCompanyJobPostResponse>
+  getSkills(params?: GetSkillsRequest): Promise<GetSkillsResponse>
+  createSkill(payload: CreateSkillRequest): Promise<CreateSkillResponse>
   getProgressSummary(learningPathId: string): Promise<GetProgressSummaryResponse>
 }

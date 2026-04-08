@@ -16,7 +16,7 @@ export default function BadgesPage() {
     return (
       <ErrorState
         title="Lencana belum dapat ditampilkan"
-        description="Gagal memuat data lencana dari API mock."
+        description="Gagal memuat data lencana."
         onRetry={() => {
           void refetch()
         }}

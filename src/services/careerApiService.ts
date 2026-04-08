@@ -1,11 +1,18 @@
 import type { CareerApiService } from './apiService'
 import { endpoints } from './contracts'
 import { requestJson } from './httpClient'
+import {
+  buildListQueryString,
+  normalizeListQueryParams,
+  normalizePaginatedListData,
+} from './pagination'
 import { useSessionStore } from '../store'
 import type {
   AssessmentHistoryItem,
   CreateCompanyJobPostRequest,
   CreateCompanyJobPostResponse,
+  CreateSkillRequest,
+  CreateSkillResponse,
   GetBadgesResponse,
   GetCareerGoalsResponse,
   GetCompanyJobPostsResponse,
@@ -15,9 +22,12 @@ import type {
   GetLearningPathResponse,
   GetMyAssessmentsResponse,
   GetProgressSummaryResponse,
+  GetSkillsRequest,
+  GetSkillsResponse,
   GetUserProfileResponse,
   RecommendationRequest,
   RecommendationResponse,
+  SkillCatalogItem,
   SubmitAssessmentRequest,
   SubmitAssessmentResponse,
   UpdateLearningProgressRequest,
@@ -169,7 +179,7 @@ function normalizeAssessmentHistoryItem(value: unknown): AssessmentHistoryItem |
   }
 }
 
-export const realCareerApiService: CareerApiService = {
+export const careerApiService: CareerApiService = {
   getUserProfile(): Promise<GetUserProfileResponse> {
     return requestJson<GetUserProfileResponse['data']>(endpoints.userProfile, {
       headers: buildAuthHeaders(),
@@ -263,6 +273,28 @@ export const realCareerApiService: CareerApiService = {
 
   createCompanyJob(payload: CreateCompanyJobPostRequest): Promise<CreateCompanyJobPostResponse> {
     return requestJson<CreateCompanyJobPostResponse['data']>(endpoints.companyJobs, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: buildAuthHeaders(),
+    })
+  },
+
+  async getSkills(params?: GetSkillsRequest): Promise<GetSkillsResponse> {
+    const normalizedParams = normalizeListQueryParams(params)
+    const queryString = buildListQueryString(normalizedParams)
+    const endpoint = `${endpoints.skills}?${queryString}`
+    const response = await requestJson<unknown>(endpoint, {
+      headers: buildAuthHeaders(),
+    })
+
+    return {
+      ...response,
+      data: normalizePaginatedListData<SkillCatalogItem>(response.data, normalizedParams),
+    }
+  },
+
+  createSkill(payload: CreateSkillRequest): Promise<CreateSkillResponse> {
+    return requestJson<CreateSkillResponse['data']>(endpoints.skills, {
       method: 'POST',
       body: JSON.stringify(payload),
       headers: buildAuthHeaders(),

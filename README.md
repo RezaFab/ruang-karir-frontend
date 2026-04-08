@@ -1,50 +1,149 @@
-# Ruang Karir Frontend Prototype
+# Ruang Karir Frontend
 
-Frontend prototype backend-ready untuk demo/pitch aplikasi **Ruang Karir**.
+Frontend aplikasi **Ruang Karir** berbasis React + TypeScript dengan mode **full API** (tanpa mock/dummy data di runtime).
 
 ## Stack
 
-- React + TypeScript + Vite
-- Tailwind CSS
+- React 19 + TypeScript + Vite
+- Tailwind CSS v4
 - React Router
 - TanStack Query
 - Zustand
 - lozad.js
-- Priority Hints (`fetchPriority`)
+- Priority Hints (`fetchpriority`)
+
+## Prasyarat
+
+- Node.js 20+ (disarankan LTS)
+- NPM
+- Server Ruang Karir berjalan di lokal
 
 ## Menjalankan Project
 
 ```bash
 npm install
+cp .env.example .env.local
 npm run dev
+```
+
+Build dan quality check:
+
+```bash
 npm run build
 npm run lint
+npx tsc -b
 ```
 
 ## Konfigurasi Environment
 
-Salin `.env.example` ke `.env.local` lalu sesuaikan:
+`.env.example`:
 
 ```bash
-VITE_API_BASE_URL=http://localhost:3000
-VITE_USE_MOCK_CAREER_API=false
-VITE_USE_MOCK_AUTH_API=false
+VITE_API_BASE_URL=http://localhost:3001
 ```
 
-Catatan:
-- `VITE_USE_MOCK_CAREER_API=false` mengaktifkan koneksi full API untuk domain career.
-- `VITE_USE_MOCK_AUTH_API=false` mengaktifkan koneksi full API untuk auth.
+Semua request akan diarahkan ke `${VITE_API_BASE_URL}/api/*`.
+
+## Arsitektur Singkat
+
+- `src/pages` -> container tiap halaman/fitur.
+- `src/components` -> komponen reusable (UI, card, panel, skeleton, dsb).
+- `src/layouts` -> `PublicLayout` dan `AppLayout`.
+- `src/routes` -> route tree + guard (`ProtectedRoute`, `RoleRoute`, `PublicOnlyRoute`).
+- `src/services` -> kontrak endpoint, HTTP client, service auth/career, query keys, util pagination.
+- `src/hooks` -> hook Query/Mutation (`useCareerApi`, `useAuth`).
+- `src/store` -> global state Zustand (session, assessment draft, UI state).
+- `src/types` -> seluruh tipe request/response.
+
+## Data & API Contract
+
+Frontend mengonsumsi envelope response:
+
+```json
+{
+  "data": {},
+  "message": "string",
+  "meta": {
+    "requestId": "string",
+    "timestamp": "ISO string"
+  }
+}
+```
+
+### Endpoint yang dipakai FE
+
+Auth:
+
+- `POST /api/auth/login`
+- `POST /api/auth/google-login` (dipanggil dari tombol masuk Google)
+- `POST /api/auth/register`
+- `POST /api/auth/forgot-password`
+- `POST /api/auth/refresh`
+- `POST /api/auth/logout`
+
+Data utama:
+
+- `GET /api/user/profile`
+- `GET /api/career-goals`
+- `POST /api/assessments`
+- `GET /api/assessments/me`
+- `POST /api/recommendations`
+- `GET /api/learning-paths/:id`
+- `PATCH /api/learning-paths/:id/progress`
+- `GET /api/progress/:learningPathId`
+- `GET /api/badges`
+- `GET /api/industry-trends`
+- `GET /api/company/candidates`
+- `GET /api/jobs/recommendations`
+- `GET /api/company/jobs`
+- `POST /api/company/jobs`
+
+Skill catalog:
+
+- `GET /api/skills?search=&page=&length=`
+- `POST /api/skills`
+
+## Auth Behavior di FE
+
+- Access token disimpan di Zustand store (`useSessionStore`) dan dipakai pada header `Authorization: Bearer`.
+- Refresh token dibaca dari header `x-refresh-token`.
+- Saat akses protected endpoint mendapat `401`, FE otomatis mencoba `POST /api/auth/refresh`.
+- Jika refresh gagal, session dibersihkan dan user diarahkan ke `/login`.
 
 ## Route Utama
 
-- `/` Landing Page
-- `/assessment` Assessment multi-step
-- `/assessment/result` Assessment Result (2 jalur)
-- `/learning-path/:id` Detail learning path
-- `/dashboard` Progress dashboard
-- `/badges` Badge / achievement
-- `/company` Optional company / HR view
-- `/not-found` Not found page
+Public:
+
+- `/`
+- `/login`
+- `/create-account`
+- `/forgot-password`
+
+Worker + Admin:
+
+- `/assessment`
+- `/assessment/result`
+- `/learning-path/:id`
+- `/dashboard`
+- `/badges`
+- `/jobs/search`
+
+Company + Admin:
+
+- `/company/jobs`
+- `/talent`
+
+Fallback:
+
+- `/not-found`
+
+## Catatan Penting
+
+- Mode mock/dummy **sudah tidak dipakai** untuk alur utama aplikasi.
+- Jika server belum aktif atau kontrak tidak cocok, komponen akan menampilkan state error dari request.
+- Penamaan service aktif:
+  - `src/services/authApiService.ts`
+  - `src/services/careerApiService.ts`
 
 ## Struktur Folder
 
@@ -52,11 +151,8 @@ Catatan:
 src/
   assets/
   components/
-    cards/
-    common/
   hooks/
   layouts/
-  mocks/
   pages/
   routes/
   services/
@@ -65,63 +161,8 @@ src/
   utils/
 ```
 
-## Data Layer (Backend-ready)
-
-Semua data dummy tidak ditaruh di komponen UI, tetapi lewat service API:
-
-- Contract endpoint: `src/services/contracts.ts`
-- Interface service: `src/services/apiService.ts`
-- Mock implementation: `src/services/mockCareerApiService.ts`
-- Real API implementation (full API): `src/services/realCareerApiService.ts`
-- Service selector: `src/services/index.ts`
-- Query key factory: `src/services/queryKeys.ts`
-
-### Endpoint contract yang disiapkan
-
-- `GET /api/career-goals`
-- `POST /api/assessments`
-- `POST /api/recommendations`
-- `GET /api/learning-paths/:id`
-- `PATCH /api/learning-paths/:id/progress`
-- `GET /api/badges`
-- `GET /api/industry-trends`
-- `GET /api/company/candidates`
-
-## Query & Mutation (TanStack Query)
-
-Contoh hook ada di `src/hooks/useCareerApi.ts`:
-
-- Query: profile, career goals, trends, badges, candidates, learning path, progress summary
-- Mutation: submit assessment, request recommendation, update module progress
-
-## Global State (Zustand)
-
-- `src/store/useSessionStore.ts` -> auth/session mock + role switch
-- `src/store/useAssessmentStore.ts` -> draft assessment + selected career goal
-- `src/store/useUiStore.ts` -> filter/sort UI state
-
 ## Performance
 
-- **Priority Hints**: Hero image memakai `fetchPriority="high"` di `src/pages/LandingPage.tsx`
-- **lozad.js**: Lazy image bawah fold via class `.lozad` dan `data-src`
-  - Hook observer: `src/hooks/useLozad.ts`
-  - Aktivasi per route: `src/App.tsx`
-
-## Integrasi Backend Lokal
-
-Frontend saat ini dikonfigurasi untuk memakai endpoint `ruang-karir-backend` penuh melalui base URL `http://localhost:3000` dengan kontrak `/api/*`.
-
-## Migrasi ke Backend Penuh
-
-1. Implementasi real request sudah disiapkan di `src/services/realCareerApiService.ts`.
-2. Set env agar aplikasi pakai real API:
-
-```bash
-VITE_API_BASE_URL=http://localhost:3000
-VITE_USE_MOCK_CAREER_API=false
-VITE_USE_MOCK_AUTH_API=false
-```
-
-3. Pastikan endpoint backend memenuhi kontrak di `src/services/contracts.ts`.
-4. Pastikan response backend mengikuti shape `ApiResponse<T>` di `src/types/api.ts` (atau sediakan adapter di service).
-5. Komponen halaman tidak perlu diubah karena konsumsi data sudah lewat hooks/query.
+- Hero image di landing memakai `fetchpriority="high"` untuk konten above-the-fold.
+- Asset bawah fold di-observe menggunakan `lozad` (`src/hooks/useLozad.ts`).
+- Route-level code splitting via `React.lazy` + `Suspense` di `src/routes/AppRoutes.tsx`.

@@ -18,4 +18,5 @@ export const endpoints = {
   companyJobs: '/api/company/jobs',
   progressSummaryByPath: (learningPathId: string) => `/api/progress/${learningPathId}`,
   userProfile: '/api/user/profile',
+  skills: '/api/skills',
 } as const

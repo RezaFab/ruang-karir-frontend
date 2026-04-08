@@ -117,7 +117,7 @@ function buildAuthHeaders(): HeadersInit | undefined {
   }
 }
 
-export const realAuthApiService: AuthApiService = {
+export const authApiService: AuthApiService = {
   async login(payload: LoginRequest): Promise<LoginResponse> {
     const { response, headers } = await requestJsonWithHeaders<unknown>(endpoints.authLogin, {
       method: 'POST',

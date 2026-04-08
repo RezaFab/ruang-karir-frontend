@@ -11,6 +11,7 @@ import type {
   JobSearchInsight,
   LearningPath,
   ProgressSummary,
+  SkillCatalogItem,
   SkillGapSummary,
   UserRole,
   UserProfile,
@@ -40,6 +41,30 @@ export interface SubmitAssessmentResponseData {
 export interface RecommendationRequest {
   assessmentId: string
   selectedCareerGoalId?: string
+}
+
+export interface GetSkillsRequest {
+  search?: string
+  page?: number
+  length?: number
+}
+
+export interface CreateSkillRequest {
+  name: string
+}
+
+export interface PaginationData {
+  page: number
+  length: number
+  total: number
+  totalPages: number
+  hasNextPage: boolean
+  hasPrevPage: boolean
+}
+
+export interface PaginatedListData<T> {
+  items: T[]
+  pagination: PaginationData
 }
 
 export interface RecommendationNeedsGoalData {
@@ -161,6 +186,8 @@ export type GetProgressSummaryResponse = ApiResponse<ProgressSummary>
 export type GetJobRecommendationsResponse = ApiResponse<JobRecommendationsResponseData>
 export type GetCompanyJobPostsResponse = ApiResponse<CompanyJobPost[]>
 export type CreateCompanyJobPostResponse = ApiResponse<CompanyJobPost>
+export type GetSkillsResponse = ApiResponse<PaginatedListData<SkillCatalogItem>>
+export type CreateSkillResponse = ApiResponse<SkillCatalogItem>
 export type LoginResponse = ApiResponse<LoginResponseData>
 export type RefreshTokenResponse = ApiResponse<RefreshTokenResponseData>
 export type LogoutResponse = ApiResponse<LogoutResponseData>

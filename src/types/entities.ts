@@ -67,6 +67,15 @@ export interface CareerGoal {
   minimumTransitionMonths: number
 }
 
+export interface SkillCatalogItem {
+  id: string
+  name: string
+  normalizedName: string
+  usageCount: number
+  source: 'system' | 'user'
+  createdAt: string
+}
+
 export interface CareerRecommendation {
   careerGoalId: string
   title: string
