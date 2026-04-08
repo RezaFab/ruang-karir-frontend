@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { LoadingSkeleton } from '../components'
 import { AppLayout, PublicLayout } from '../layouts'
-import { ProtectedRoute, PublicOnlyRoute } from './RouteGuards'
+import { ProtectedRoute, PublicOnlyRoute, RoleRoute } from './RouteGuards'
 
 const LandingPage = lazy(() => import('../pages/LandingPage'))
 const LoginPage = lazy(() => import('../pages/LoginPage'))
@@ -14,6 +14,8 @@ const LearningPathDetailPage = lazy(() => import('../pages/LearningPathDetailPag
 const ProgressDashboardPage = lazy(() => import('../pages/ProgressDashboardPage'))
 const BadgesPage = lazy(() => import('../pages/BadgesPage'))
 const CompanyViewPage = lazy(() => import('../pages/CompanyViewPage'))
+const JobSearchPage = lazy(() => import('../pages/JobSearchPage'))
+const JobPostingPage = lazy(() => import('../pages/JobPostingPage'))
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage'))
 
 function RouteFallback() {
@@ -39,12 +41,19 @@ export function AppRoutes() {
 
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
-            <Route path="/assessment" element={<AssessmentPage />} />
-            <Route path="/assessment/result" element={<AssessmentResultPage />} />
-            <Route path="/learning-path/:id" element={<LearningPathDetailPage />} />
-            <Route path="/dashboard" element={<ProgressDashboardPage />} />
-            <Route path="/badges" element={<BadgesPage />} />
-            <Route path="/company" element={<CompanyViewPage />} />
+            <Route element={<RoleRoute allowedRoles={['worker', 'admin']} />}>
+              <Route path="/assessment" element={<AssessmentPage />} />
+              <Route path="/assessment/result" element={<AssessmentResultPage />} />
+              <Route path="/learning-path/:id" element={<LearningPathDetailPage />} />
+              <Route path="/dashboard" element={<ProgressDashboardPage />} />
+              <Route path="/badges" element={<BadgesPage />} />
+              <Route path="/jobs/search" element={<JobSearchPage />} />
+            </Route>
+
+            <Route element={<RoleRoute allowedRoles={['company', 'admin']} />}>
+              <Route path="/company/jobs" element={<JobPostingPage />} />
+              <Route path="/talent" element={<CompanyViewPage />} />
+            </Route>
           </Route>
         </Route>
 

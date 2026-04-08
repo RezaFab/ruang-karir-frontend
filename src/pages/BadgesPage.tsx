@@ -40,17 +40,17 @@ export default function BadgesPage() {
     <section className="space-y-6">
       <SectionHeader
         title="Lencana & Pencapaian"
-        subtitle="Gamifikasi untuk menjaga motivasi belajar dan menunjukkan milestone transisi karier."
+        subtitle="Koleksi pencapaian belajar untuk menunjukkan konsistensi dan kesiapan transisi karier."
       />
 
-      <article className="grid gap-6 rounded-2xl border border-border bg-surface p-6 md:grid-cols-2 md:items-center">
+      <article className="grid gap-6 rounded-3xl border border-border bg-[linear-gradient(120deg,#0f2740,#1f6f8b)] p-6 text-white md:grid-cols-2 md:items-center">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Pratinjau Lencana Digital</p>
-          <h2 className="mt-2 font-heading text-2xl font-semibold text-ink">Credential siap dipamerkan</h2>
-          <p className="mt-2 text-sm text-muted">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/80">Pratinjau Lencana Digital</p>
+          <h2 className="mt-2 font-heading text-2xl font-semibold">Credential siap dipamerkan</h2>
+          <p className="mt-2 text-sm text-white/90">
             Lencana bisa dipakai untuk portofolio, profil profesional, atau bukti progres ke recruiter.
           </p>
-          <p className="mt-3 text-sm font-medium text-ink">
+          <p className="mt-3 text-sm font-semibold text-white">
             Terbuka {unlockedBadges.length} dari {badges.length} lencana
           </p>
         </div>

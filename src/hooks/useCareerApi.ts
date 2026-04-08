@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { careerApiService, queryKeys } from '../services'
 import type {
+  CreateCompanyJobPostRequest,
   RecommendationRequest,
   SubmitAssessmentRequest,
   UpdateLearningProgressRequest,
@@ -21,6 +22,16 @@ export function useCareerGoalsQuery() {
     queryKey: queryKeys.careerGoals(),
     queryFn: async () => {
       const response = await careerApiService.getCareerGoals()
+      return response.data
+    },
+  })
+}
+
+export function useMyAssessmentsQuery() {
+  return useQuery({
+    queryKey: queryKeys.assessmentsMe(),
+    queryFn: async () => {
+      const response = await careerApiService.getMyAssessments()
       return response.data
     },
   })
@@ -51,6 +62,26 @@ export function useCompanyCandidatesQuery() {
     queryKey: queryKeys.companyCandidates(),
     queryFn: async () => {
       const response = await careerApiService.getCompanyCandidates()
+      return response.data
+    },
+  })
+}
+
+export function useJobRecommendationsQuery() {
+  return useQuery({
+    queryKey: queryKeys.jobRecommendations(),
+    queryFn: async () => {
+      const response = await careerApiService.getJobRecommendations()
+      return response.data
+    },
+  })
+}
+
+export function useCompanyJobsQuery() {
+  return useQuery({
+    queryKey: queryKeys.companyJobs(),
+    queryFn: async () => {
+      const response = await careerApiService.getCompanyJobs()
       return response.data
     },
   })
@@ -87,10 +118,15 @@ export function useProgressSummaryQuery(pathId: string | undefined) {
 }
 
 export function useSubmitAssessmentMutation() {
+  const queryClient = useQueryClient()
+
   return useMutation({
     mutationFn: async (payload: SubmitAssessmentRequest) => {
       const response = await careerApiService.submitAssessment(payload)
       return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.assessmentsMe() })
     },
   })
 }
@@ -124,6 +160,20 @@ export function useUpdateLearningPathProgressMutation(pathId: string | undefined
       queryClient.invalidateQueries({ queryKey: queryKeys.learningPath(pathId) })
       queryClient.invalidateQueries({ queryKey: queryKeys.progressSummary(pathId) })
       queryClient.invalidateQueries({ queryKey: queryKeys.badges() })
+    },
+  })
+}
+
+export function useCreateCompanyJobMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: CreateCompanyJobPostRequest) => {
+      const response = await careerApiService.createCompanyJob(payload)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.companyJobs() })
     },
   })
 }

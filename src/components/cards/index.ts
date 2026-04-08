@@ -1,4 +1,5 @@
 export * from './CareerRecommendationCard'
+export * from './AssessmentHistoryCard'
 export * from './ModuleCard'
 export * from './BadgeCard'
 export * from './CandidateCard'

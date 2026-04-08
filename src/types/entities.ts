@@ -1,4 +1,4 @@
-export type UserRole = 'user' | 'company'
+export type UserRole = 'admin' | 'worker' | 'company'
 
 export interface UserProfile {
   id: string
@@ -42,6 +42,19 @@ export interface AssessmentDraft {
   experience: ExperienceInput
   careerGoalId?: string
   learningPreferences: LearningPreferenceInput
+}
+
+export interface AssessmentHistoryItem {
+  assessmentId: string
+  submittedAt: string
+  hasCareerGoal: boolean
+  careerGoalId?: string
+  currentRole?: string
+  learningPace?: string
+  workMode?: WorkPreferenceInput['workMode']
+  jobType?: WorkPreferenceInput['jobType']
+  preferredIndustries: string[]
+  existingSkills: string[]
 }
 
 export interface CareerGoal {
@@ -147,4 +160,38 @@ export interface CompanyCandidateSummary {
   readinessScore: number
   status: 'Ready' | 'Needs Upskilling'
   summary: string
+}
+
+export interface JobRecommendation {
+  id: string
+  title: string
+  companyName: string
+  location: string
+  workMode: WorkPreferenceInput['workMode']
+  jobType: WorkPreferenceInput['jobType']
+  salaryRange: string
+  requiredSkills: string[]
+  profileMatchScore: number
+  postedAt: string
+  summary: string
+}
+
+export interface JobSearchInsight {
+  overallProfileMatchScore: number
+  readinessLabel: 'Sangat Sesuai' | 'Cukup Sesuai' | 'Perlu Penguatan'
+  note: string
+}
+
+export interface CompanyJobPost {
+  id: string
+  title: string
+  location: string
+  workMode: WorkPreferenceInput['workMode']
+  jobType: WorkPreferenceInput['jobType']
+  salaryRange: string
+  requiredSkills: string[]
+  description: string
+  status: 'open' | 'draft' | 'closed'
+  applicantsCount: number
+  createdAt: string
 }

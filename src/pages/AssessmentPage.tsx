@@ -1,13 +1,18 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
+  AssessmentHistoryCard,
   EmptyState,
   ErrorState,
   LoadingSkeleton,
   ProgressStepper,
   SectionHeader,
 } from '../components'
-import { useCareerGoalsQuery, useSubmitAssessmentMutation } from '../hooks/useCareerApi'
+import {
+  useCareerGoalsQuery,
+  useMyAssessmentsQuery,
+  useSubmitAssessmentMutation,
+} from '../hooks/useCareerApi'
 import { useAssessmentStore } from '../store'
 import { type AssessmentStep, assessmentStepLabels, industryOptions, skillSuggestions, validateAssessmentStep } from '../utils'
 
@@ -32,6 +37,13 @@ export default function AssessmentPage() {
     isError: goalsError,
     refetch: refetchGoals,
   } = useCareerGoalsQuery()
+  const {
+    data: assessmentHistory,
+    isLoading: historyLoading,
+    isError: historyError,
+    error: historyErrorObject,
+    refetch: refetchHistory,
+  } = useMyAssessmentsQuery()
 
   const submitMutation = useSubmitAssessmentMutation()
 
@@ -39,6 +51,22 @@ export default function AssessmentPage() {
     () => Math.round(((currentStep + 1) / assessmentStepLabels.length) * 100),
     [currentStep],
   )
+  const sortedAssessmentHistory = useMemo(
+    () =>
+      [...(assessmentHistory ?? [])].sort((first, second) =>
+        second.submittedAt.localeCompare(first.submittedAt),
+      ),
+    [assessmentHistory],
+  )
+  const latestAssessment = sortedAssessmentHistory[0]
+  const careerGoalTitleMap = useMemo(
+    () => new Map((careerGoals ?? []).map((goal) => [goal.id, goal.title])),
+    [careerGoals],
+  )
+  const historyErrorMessage =
+    historyErrorObject instanceof Error
+      ? historyErrorObject.message
+      : 'Riwayat asesmen belum tersedia dari backend.'
 
   function toggleIndustry(industry: string) {
     const exists = draft.workPreferences.preferredIndustries.includes(industry)
@@ -102,6 +130,12 @@ export default function AssessmentPage() {
     )
   }
 
+  function handleOpenResult(assessmentId: string, careerGoalId?: string) {
+    setLatestAssessmentId(assessmentId)
+    setSelectedCareerGoalId(careerGoalId)
+    navigate(`/assessment/result?assessmentId=${assessmentId}`)
+  }
+
   return (
     <section className="space-y-8">
       <SectionHeader
@@ -109,7 +143,70 @@ export default function AssessmentPage() {
         subtitle="Isi asesmen bertahap untuk menghasilkan rekomendasi karier dan jalur belajar personal."
       />
 
-      <div className="rounded-2xl border border-border bg-surface p-5">
+      <article className="rounded-3xl border border-border bg-[linear-gradient(120deg,#0f2740,#1f6f8b)] p-6 text-white shadow-[0_20px_40px_rgba(15,39,64,0.24)]">
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/80">Onboarding Karier</p>
+        <h2 className="mt-2 font-heading text-3xl font-semibold">Mulai dari profilmu, berakhir di jalur kerja nyata</h2>
+        <p className="mt-2 max-w-3xl text-sm text-white/90">
+          Form asesmen ini dipakai AI untuk memetakan kesiapan, memilih role paling cocok, dan menyusun kurikulum belajar yang relevan dengan kebutuhan industri.
+        </p>
+      </article>
+
+      <section className="space-y-4 rounded-2xl border border-border bg-surface p-5 md:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="font-heading text-xl font-semibold text-ink">Riwayat Asesmen</h2>
+            <p className="mt-1 text-sm text-muted">
+              Jika sudah pernah isi, kamu bisa lanjutkan dari hasil terakhir.
+            </p>
+          </div>
+          {latestAssessment ? (
+            <button
+              type="button"
+              onClick={() => handleOpenResult(latestAssessment.assessmentId, latestAssessment.careerGoalId)}
+              className="rounded-xl border border-ink bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:bg-panel"
+            >
+              Lanjutkan Hasil Terakhir
+            </button>
+          ) : null}
+        </div>
+
+        {historyLoading ? <LoadingSkeleton lines={3} /> : null}
+
+        {historyError ? (
+          <ErrorState
+            title="Riwayat asesmen belum bisa dimuat"
+            description={historyErrorMessage}
+            onRetry={() => {
+              void refetchHistory()
+            }}
+          />
+        ) : null}
+
+        {!historyLoading && !historyError && sortedAssessmentHistory.length === 0 ? (
+          <EmptyState
+            title="Belum ada riwayat asesmen"
+            description="Silakan isi asesmen pertama kamu di form bawah ini."
+          />
+        ) : null}
+
+        {!historyLoading && !historyError && sortedAssessmentHistory.length > 0 ? (
+          <div className="grid gap-3 md:grid-cols-2">
+            {sortedAssessmentHistory.map((item, index) => (
+              <AssessmentHistoryCard
+                key={item.assessmentId}
+                item={item}
+                isLatest={index === 0}
+                careerGoalTitle={
+                  item.careerGoalId ? careerGoalTitleMap.get(item.careerGoalId) : undefined
+                }
+                onOpenResult={handleOpenResult}
+              />
+            ))}
+          </div>
+        ) : null}
+      </section>
+
+      <div className="rounded-2xl border border-border bg-white p-5">
         <ProgressStepper steps={assessmentStepLabels} currentStep={currentStep} />
         <div className="mt-4 h-2 overflow-hidden rounded-full bg-panel">
           <div
@@ -130,7 +227,7 @@ export default function AssessmentPage() {
               <input
                 value={draft.basicProfile.fullName}
                 onChange={(event) => updateBasicProfile({ fullName: event.target.value })}
-                placeholder="Contoh: Alya Pratama"
+                placeholder="Contoh: Reza Lesmana"
                 className="input-field"
               />
               {errors.fullName ? <span className="text-xs text-danger">{errors.fullName}</span> : null}

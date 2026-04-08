@@ -21,6 +21,20 @@ npm run build
 npm run lint
 ```
 
+## Konfigurasi Environment
+
+Salin `.env.example` ke `.env.local` lalu sesuaikan:
+
+```bash
+VITE_API_BASE_URL=http://localhost:3000
+VITE_USE_MOCK_CAREER_API=false
+VITE_USE_MOCK_AUTH_API=false
+```
+
+Catatan:
+- `VITE_USE_MOCK_CAREER_API=false` mengaktifkan koneksi full API untuk domain career.
+- `VITE_USE_MOCK_AUTH_API=false` mengaktifkan koneksi full API untuk auth.
+
 ## Route Utama
 
 - `/` Landing Page
@@ -58,7 +72,7 @@ Semua data dummy tidak ditaruh di komponen UI, tetapi lewat service API:
 - Contract endpoint: `src/services/contracts.ts`
 - Interface service: `src/services/apiService.ts`
 - Mock implementation: `src/services/mockCareerApiService.ts`
-- Real API implementation (placeholder): `src/services/realCareerApiService.ts`
+- Real API implementation (full API): `src/services/realCareerApiService.ts`
 - Service selector: `src/services/index.ts`
 - Query key factory: `src/services/queryKeys.ts`
 
@@ -93,15 +107,21 @@ Contoh hook ada di `src/hooks/useCareerApi.ts`:
   - Hook observer: `src/hooks/useLozad.ts`
   - Aktivasi per route: `src/App.tsx`
 
-## Migrasi Mock API ke Backend Asli
+## Integrasi Backend Lokal
+
+Frontend saat ini dikonfigurasi untuk memakai endpoint `ruang-karir-backend` penuh melalui base URL `http://localhost:3000` dengan kontrak `/api/*`.
+
+## Migrasi ke Backend Penuh
 
 1. Implementasi real request sudah disiapkan di `src/services/realCareerApiService.ts`.
-2. Set env berikut agar aplikasi pakai real API:
+2. Set env agar aplikasi pakai real API:
 
 ```bash
-VITE_USE_MOCK_API=false
+VITE_API_BASE_URL=http://localhost:3000
+VITE_USE_MOCK_CAREER_API=false
+VITE_USE_MOCK_AUTH_API=false
 ```
 
-3. Pastikan response backend mengikuti shape `ApiResponse<T>` di `src/types/api.ts`.
-4. Jika endpoint real berbeda, update mapping di `src/services/contracts.ts`.
+3. Pastikan endpoint backend memenuhi kontrak di `src/services/contracts.ts`.
+4. Pastikan response backend mengikuti shape `ApiResponse<T>` di `src/types/api.ts` (atau sediakan adapter di service).
 5. Komponen halaman tidak perlu diubah karena konsumsi data sudah lewat hooks/query.

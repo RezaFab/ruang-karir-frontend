@@ -1,10 +1,10 @@
-﻿import { useMemo, useState, type FormEvent } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { useGoogleLoginMutation, useLoginMutation } from '../hooks/useAuth'
+import { useLoginMutation } from '../hooks/useAuth'
 import { useSessionStore } from '../store'
+import type { UserRole } from '../types'
 
 const DEFAULT_REDIRECT = '/dashboard'
-const DUMMY_GOOGLE_ID_TOKEN = 'dummy-google-token-login-page'
 
 function GoogleIcon() {
   return (
@@ -40,8 +40,7 @@ export default function LoginPage() {
   const [infoMessage, setInfoMessage] = useState('')
 
   const loginMutation = useLoginMutation()
-  const googleLoginMutation = useGoogleLoginMutation()
-  const isSubmitting = loginMutation.isPending || googleLoginMutation.isPending
+  const isSubmitting = loginMutation.isPending
 
   const redirectTarget = useMemo(() => {
     const rawTarget = searchParams.get('redirect')
@@ -52,6 +51,18 @@ export default function LoginPage() {
 
     return rawTarget
   }, [searchParams])
+
+  function resolvePostLoginRoute(role: UserRole | undefined): string {
+    if (redirectTarget !== DEFAULT_REDIRECT) {
+      return redirectTarget
+    }
+
+    if (role === 'company') {
+      return '/company/jobs'
+    }
+
+    return '/dashboard'
+  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -71,30 +82,10 @@ export default function LoginPage() {
       {
         onSuccess: (sessionData) => {
           setSession(sessionData)
-          navigate(redirectTarget, { replace: true })
+          navigate(resolvePostLoginRoute(sessionData.role), { replace: true })
         },
         onError: (error) => {
           setErrorMessage(error instanceof Error ? error.message : 'Login gagal. Coba lagi.')
-        },
-      },
-    )
-  }
-
-  function handleGoogleLogin() {
-    setErrorMessage('')
-    setInfoMessage('')
-
-    googleLoginMutation.mutate(
-      {
-        idToken: DUMMY_GOOGLE_ID_TOKEN,
-      },
-      {
-        onSuccess: (sessionData) => {
-          setSession(sessionData)
-          navigate(redirectTarget, { replace: true })
-        },
-        onError: (error) => {
-          setErrorMessage(error instanceof Error ? error.message : 'Login Google gagal. Coba lagi.')
         },
       },
     )
@@ -190,12 +181,11 @@ export default function LoginPage() {
 
           <button
             type="button"
-            onClick={handleGoogleLogin}
-            disabled={isSubmitting}
-            className="flex h-12 w-full items-center justify-center gap-3 rounded-md border border-border bg-panel text-base font-semibold text-ink transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={() => setInfoMessage('Login Google akan segera tersedia.')}
+            className="flex h-12 w-full items-center justify-center gap-3 rounded-md border border-border bg-panel text-base font-semibold text-ink transition hover:bg-slate-200"
           >
             <GoogleIcon />
-            {googleLoginMutation.isPending ? 'Menghubungkan Google...' : 'Masuk dengan Google'}
+            Masuk dengan Google
           </button>
         </form>
 
@@ -205,14 +195,6 @@ export default function LoginPage() {
             Buat akun
           </Link>
         </p>
-
-        <button
-          type="button"
-          onClick={() => setInfoMessage('Masuk dengan passkey masih dummy/placeholder.')}
-          className="mt-4 w-full text-center text-base font-semibold text-primary transition hover:underline"
-        >
-          Masuk dengan passkey
-        </button>
       </article>
     </section>
   )

@@ -2,15 +2,23 @@ import type { CareerApiService } from './apiService'
 import { mockCareerApiService } from './mockCareerApiService'
 import { realCareerApiService } from './realCareerApiService'
 import type { AuthApiService } from './authService'
-import { mockAuthApiService } from './mockAuthApiService'
 import { realAuthApiService } from './realAuthApiService'
 
-const useMockApi = import.meta.env.VITE_USE_MOCK_API !== 'false'
+function resolveUseMockApi(value: string | undefined, fallback: boolean): boolean {
+  if (typeof value === 'undefined') {
+    return fallback
+  }
 
-export const careerApiService: CareerApiService = useMockApi
+  return value !== 'false'
+}
+
+const legacyUseMockApi = import.meta.env.VITE_USE_MOCK_API !== 'false'
+const useMockCareerApi = resolveUseMockApi(import.meta.env.VITE_USE_MOCK_CAREER_API, legacyUseMockApi)
+
+export const careerApiService: CareerApiService = useMockCareerApi
   ? mockCareerApiService
   : realCareerApiService
-export const authApiService: AuthApiService = useMockApi ? mockAuthApiService : realAuthApiService
+export const authApiService: AuthApiService = realAuthApiService
 
 export * from './apiService'
 export * from './authService'

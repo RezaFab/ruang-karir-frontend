@@ -44,22 +44,27 @@ export default function CompanyViewPage() {
   return (
     <section className="space-y-6">
       <SectionHeader
-        title="Tampilan Perusahaan / HR"
-        subtitle="Placeholder B2B untuk menampilkan kandidat unggulan berdasarkan skor kesiapan."
+        title="Kandidat Unggulan"
+        subtitle="Pantau kandidat siap kerja berdasarkan skor kesiapan, skill inti, dan ringkasan profil."
       />
 
-      <article className="rounded-2xl border border-border bg-surface p-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Urutkan Kandidat</p>
+      <article className="rounded-3xl border border-border bg-[linear-gradient(120deg,#0f2740,#1f6f8b)] p-5 text-white">
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/80">Ringkasan Talent Pool</p>
+        <h2 className="mt-2 font-heading text-3xl font-semibold">{sortedCandidates.length} kandidat terkurasi</h2>
+        <p className="mt-2 text-sm text-white/90">
+          Gunakan filter untuk memprioritaskan kandidat dengan tingkat kesiapan tertinggi.
+        </p>
+
         <div className="mt-3 flex flex-wrap gap-2">
           {(['readiness', 'name'] as const).map((sortKey) => (
             <button
               type="button"
               key={sortKey}
               onClick={() => setCandidateSort(sortKey)}
-              className={`rounded-full border px-3 py-1.5 text-sm ${
+              className={`rounded-full border px-3 py-1.5 text-sm font-medium ${
                 candidateSort === sortKey
-                  ? 'border-primary bg-primary-soft text-primary'
-                  : 'border-border text-muted'
+                  ? 'border-white/40 bg-white text-ink'
+                  : 'border-white/30 bg-white/10 text-white'
               }`}
             >
               {sortKey === 'readiness' ? 'Skor Kesiapan' : 'Nama'}

@@ -86,28 +86,31 @@ export default function AssessmentResultPage() {
 
       {!recommendationMutation.isPending && !recommendationMutation.isError && result ? (
         <>
-          <article className="rounded-2xl border border-border bg-surface p-6">
-            <h2 className="font-heading text-2xl font-semibold text-ink">Ringkasan Insight AI</h2>
-            <p className="mt-2 text-sm text-muted">{result.reasoning}</p>
+          <article className="rounded-3xl border border-border bg-[linear-gradient(120deg,#0f2740,#1f6f8b)] p-6 text-white shadow-[0_20px_45px_rgba(15,39,64,0.22)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/80">Insight Karier AI</p>
+            <h2 className="mt-2 font-heading text-3xl font-semibold">
+              {result.mode === 'direct-path' ? result.selectedCareerGoal.title : 'Rekomendasi Multi-Role'}
+            </h2>
+            <p className="mt-2 text-sm text-white/90">{result.reasoning}</p>
 
             <div className="mt-5 grid gap-4 md:grid-cols-2">
-              <div className="rounded-xl border border-border bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Kekuatan</p>
-                <ul className="mt-2 space-y-1 text-sm text-ink">
+              <div className="rounded-xl border border-white/20 bg-white/10 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/75">Kekuatan</p>
+                <ul className="mt-2 space-y-1 text-sm text-white">
                   {result.skillGapSummary.strengths.map((item) => (
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
               </div>
 
-              <div className="rounded-xl border border-border bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Kesenjangan Skill</p>
-                <ul className="mt-2 space-y-1 text-sm text-ink">
+              <div className="rounded-xl border border-white/20 bg-white/10 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/75">Kesenjangan Skill</p>
+                <ul className="mt-2 space-y-1 text-sm text-white">
                   {result.skillGapSummary.missingSkills.map((item) => (
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
-                <p className="mt-3 text-xs font-medium uppercase tracking-[0.12em] text-muted">
+                <p className="mt-3 text-xs font-medium uppercase tracking-[0.12em] text-white/75">
                   Tingkat Urgensi {result.skillGapSummary.urgency}
                 </p>
               </div>

@@ -4,6 +4,7 @@ import type {
   ForgotPasswordRequest,
   GoogleLoginRequest,
   LoginRequest,
+  LogoutRequest,
   RegisterRequest,
 } from '../types'
 
@@ -38,6 +39,15 @@ export function useForgotPasswordMutation() {
   return useMutation({
     mutationFn: async (payload: ForgotPasswordRequest) => {
       const response = await authApiService.forgotPassword(payload)
+      return response.data
+    },
+  })
+}
+
+export function useLogoutMutation() {
+  return useMutation({
+    mutationFn: async (payload: LogoutRequest) => {
+      const response = await authApiService.logout(payload)
       return response.data
     },
   })

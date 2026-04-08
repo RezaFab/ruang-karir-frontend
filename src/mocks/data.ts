@@ -3,8 +3,11 @@ import type {
   Badge,
   CareerGoal,
   CareerRecommendation,
+  CompanyJobPost,
   CompanyCandidateSummary,
   IndustryTrend,
+  JobRecommendation,
+  JobSearchInsight,
   LearningPath,
   ProgressSummary,
   SkillGapSummary,
@@ -13,8 +16,8 @@ import type {
 
 export const mockUserProfile: UserProfile = {
   id: 'user-001',
-  fullName: 'Alya Pratama',
-  email: 'alya.pratama@mail.com',
+  fullName: 'Reza Lesmana',
+  email: 'reza.lesmana@mail.com',
   currentRole: 'Admin Operasional',
   educationLevel: 'S1 Manajemen',
   yearsOfExperience: 3,
@@ -23,8 +26,8 @@ export const mockUserProfile: UserProfile = {
 
 export const mockAssessmentAnswers: AssessmentDraft = {
   basicProfile: {
-    fullName: 'Alya Pratama',
-    email: 'alya.pratama@mail.com',
+    fullName: 'Reza Lesmana',
+    email: 'reza.lesmana@mail.com',
     currentRole: 'Admin Operasional',
     educationLevel: 'S1 Manajemen',
     city: 'Bandung',
@@ -527,7 +530,7 @@ export const mockBadges: Badge[] = [
 export const mockCompanyCandidates: CompanyCandidateSummary[] = [
   {
     id: 'cand-001',
-    fullName: 'Alya Pratama',
+    fullName: 'Reza Lesmana',
     targetRole: 'Data Analyst',
     topSkills: ['SQL', 'Spreadsheet', 'Dashboarding'],
     readinessScore: 78,
@@ -551,5 +554,82 @@ export const mockCompanyCandidates: CompanyCandidateSummary[] = [
     readinessScore: 83,
     status: 'Ready',
     summary: 'Mampu menggabungkan insight user dengan kebutuhan bisnis secara terukur.',
+  },
+]
+
+export const mockJobSearchInsight: JobSearchInsight = {
+  overallProfileMatchScore: 81,
+  readinessLabel: 'Cukup Sesuai',
+  note: 'Profil kamu sudah cocok untuk role entry hingga associate. Tingkatkan skill SQL dan data storytelling untuk menaikkan daya saing.',
+}
+
+export const mockJobRecommendations: JobRecommendation[] = [
+  {
+    id: 'job-001',
+    title: 'Junior Data Analyst',
+    companyName: 'Nusa Digital',
+    location: 'Bandung',
+    workMode: 'hybrid',
+    jobType: 'full-time',
+    salaryRange: 'Rp7.000.000 - Rp10.000.000',
+    requiredSkills: ['SQL', 'Excel', 'Dashboarding'],
+    profileMatchScore: 88,
+    postedAt: '2026-04-06',
+    summary: 'Menganalisis data operasional dan menyusun insight mingguan untuk tim bisnis.',
+  },
+  {
+    id: 'job-002',
+    title: 'Business Intelligence Associate',
+    companyName: 'Astrafin',
+    location: 'Jakarta',
+    workMode: 'remote',
+    jobType: 'full-time',
+    salaryRange: 'Rp8.500.000 - Rp12.000.000',
+    requiredSkills: ['SQL', 'Data Visualization', 'Communication'],
+    profileMatchScore: 82,
+    postedAt: '2026-04-04',
+    summary: 'Membangun dashboard performa bisnis dan membantu tim strategi mengambil keputusan.',
+  },
+  {
+    id: 'job-003',
+    title: 'Growth Data Assistant',
+    companyName: 'SatuLangkah',
+    location: 'Yogyakarta',
+    workMode: 'remote',
+    jobType: 'contract',
+    salaryRange: 'Rp6.000.000 - Rp8.000.000',
+    requiredSkills: ['Spreadsheet', 'A/B Testing', 'Analytics'],
+    profileMatchScore: 74,
+    postedAt: '2026-04-01',
+    summary: 'Mendukung eksperimen growth dan pelaporan metrik funnel acquisition-retention.',
+  },
+]
+
+export const mockCompanyJobPosts: CompanyJobPost[] = [
+  {
+    id: 'cjob-001',
+    title: 'Data Analyst Intern',
+    location: 'Bandung',
+    workMode: 'onsite',
+    jobType: 'contract',
+    salaryRange: 'Rp3.500.000 - Rp4.500.000',
+    requiredSkills: ['Excel', 'SQL Dasar', 'Komunikasi'],
+    description: 'Posisi internship untuk membantu reporting operasional dan dashboard dasar.',
+    status: 'open',
+    applicantsCount: 43,
+    createdAt: '2026-04-02T08:30:00.000Z',
+  },
+  {
+    id: 'cjob-002',
+    title: 'Frontend Engineer (Junior)',
+    location: 'Jakarta',
+    workMode: 'hybrid',
+    jobType: 'full-time',
+    salaryRange: 'Rp9.000.000 - Rp13.000.000',
+    requiredSkills: ['React', 'TypeScript', 'UI Testing'],
+    description: 'Membangun fitur frontend dan menjaga performa web aplikasi internal.',
+    status: 'draft',
+    applicantsCount: 0,
+    createdAt: '2026-04-07T10:00:00.000Z',
   },
 ]

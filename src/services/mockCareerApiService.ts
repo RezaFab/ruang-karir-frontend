@@ -1,11 +1,14 @@
 import type { CareerApiService } from './apiService'
 import {
+  mockCompanyJobPosts,
   mockAssessmentAnswers,
   mockBadges,
   mockCareerGoals,
   mockCareerRecommendations,
   mockCompanyCandidates,
   mockIndustryTrends,
+  mockJobRecommendations,
+  mockJobSearchInsight,
   mockLearningPaths,
   mockProgressSummaries,
   mockSkillGapByCareerGoal,
@@ -18,12 +21,18 @@ import {
   withDelay,
 } from '../mocks/helpers'
 import type {
+  AssessmentHistoryItem,
   AssessmentDraft,
+  CreateCompanyJobPostRequest,
+  CreateCompanyJobPostResponse,
   GetBadgesResponse,
   GetCareerGoalsResponse,
+  GetCompanyJobPostsResponse,
   GetCompanyCandidatesResponse,
   GetIndustryTrendsResponse,
+  GetJobRecommendationsResponse,
   GetLearningPathResponse,
+  GetMyAssessmentsResponse,
   GetProgressSummaryResponse,
   GetUserProfileResponse,
   RecommendationRequest,
@@ -38,6 +47,30 @@ const assessmentMap = new Map<string, AssessmentDraft>()
 const learningPathState = cloneDeep(mockLearningPaths)
 const progressSummaryState = cloneDeep(mockProgressSummaries)
 let badgesState = cloneDeep(mockBadges)
+let companyJobsState = cloneDeep(mockCompanyJobPosts)
+
+function toAssessmentHistoryItem(
+  assessmentId: string,
+  assessment: AssessmentDraft,
+  submittedAt: string,
+): AssessmentHistoryItem {
+  return {
+    assessmentId,
+    submittedAt,
+    hasCareerGoal: Boolean(assessment.careerGoalId),
+    careerGoalId: assessment.careerGoalId,
+    currentRole: assessment.basicProfile.currentRole,
+    learningPace: assessment.learningPreferences.pace,
+    workMode: assessment.workPreferences.workMode,
+    jobType: assessment.workPreferences.jobType,
+    preferredIndustries: cloneDeep(assessment.workPreferences.preferredIndustries),
+    existingSkills: cloneDeep(assessment.existingSkills),
+  }
+}
+
+const assessmentHistoryState: AssessmentHistoryItem[] = [
+  toAssessmentHistoryItem('assessment-default', mockAssessmentAnswers, '2026-04-06T10:30:00.000Z'),
+]
 
 assessmentMap.set('assessment-default', cloneDeep(mockAssessmentAnswers))
 
@@ -143,11 +176,20 @@ export const mockCareerApiService: CareerApiService = {
     return withDelay(createApiResponse(cloneDeep(mockCareerGoals), 'Career goals fetched.'))
   },
 
+  async getMyAssessments(): Promise<GetMyAssessmentsResponse> {
+    const sortedHistory = [...assessmentHistoryState].sort((first, second) =>
+      second.submittedAt.localeCompare(first.submittedAt),
+    )
+
+    return withDelay(createApiResponse(cloneDeep(sortedHistory), 'Assessment history fetched.'))
+  },
+
   async submitAssessment(payload: SubmitAssessmentRequest): Promise<SubmitAssessmentResponse> {
     const assessmentId = generateAssessmentId()
     const submittedAt = new Date().toISOString()
 
     assessmentMap.set(assessmentId, cloneDeep(payload.assessment))
+    assessmentHistoryState.unshift(toAssessmentHistoryItem(assessmentId, payload.assessment, submittedAt))
 
     return withDelay(
       createApiResponse(
@@ -268,6 +310,36 @@ export const mockCareerApiService: CareerApiService = {
     return withDelay(
       createApiResponse(cloneDeep(mockCompanyCandidates), 'Company candidate summaries fetched.'),
     )
+  },
+
+  async getJobRecommendations(): Promise<GetJobRecommendationsResponse> {
+    return withDelay(
+      createApiResponse(
+        {
+          insight: cloneDeep(mockJobSearchInsight),
+          recommendations: cloneDeep(mockJobRecommendations),
+        },
+        'Job recommendations fetched.',
+      ),
+    )
+  },
+
+  async getCompanyJobs(): Promise<GetCompanyJobPostsResponse> {
+    return withDelay(createApiResponse(cloneDeep(companyJobsState), 'Company jobs fetched.'))
+  },
+
+  async createCompanyJob(payload: CreateCompanyJobPostRequest): Promise<CreateCompanyJobPostResponse> {
+    const createdJob = {
+      id: `cjob-${Math.random().toString(36).slice(2, 10)}`,
+      ...cloneDeep(payload),
+      status: 'open' as const,
+      applicantsCount: 0,
+      createdAt: new Date().toISOString(),
+    }
+
+    companyJobsState = [createdJob, ...companyJobsState]
+
+    return withDelay(createApiResponse(cloneDeep(createdJob), 'Company job created.'), 500)
   },
 
   async getProgressSummary(learningPathId: string): Promise<GetProgressSummaryResponse> {

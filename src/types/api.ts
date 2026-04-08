@@ -1,13 +1,18 @@
 import type {
   AssessmentDraft,
+  AssessmentHistoryItem,
   Badge,
   CareerGoal,
   CareerRecommendation,
+  CompanyJobPost,
   CompanyCandidateSummary,
   IndustryTrend,
+  JobRecommendation,
+  JobSearchInsight,
   LearningPath,
   ProgressSummary,
   SkillGapSummary,
+  UserRole,
   UserProfile,
 } from './entities'
 
@@ -66,9 +71,32 @@ export interface UpdateLearningProgressResponseData {
   progressSummary: ProgressSummary
 }
 
+export interface CreateCompanyJobPostRequest {
+  title: string
+  location: string
+  workMode: 'remote' | 'hybrid' | 'onsite'
+  jobType: 'full-time' | 'contract' | 'freelance'
+  salaryRange: string
+  requiredSkills: string[]
+  description: string
+}
+
+export interface JobRecommendationsResponseData {
+  insight: JobSearchInsight
+  recommendations: JobRecommendation[]
+}
+
 export interface LoginRequest {
   identifier: string
   password: string
+}
+
+export interface RefreshTokenRequest {
+  refreshToken: string
+}
+
+export interface LogoutRequest {
+  refreshToken?: string
 }
 
 export interface GoogleLoginRequest {
@@ -105,11 +133,23 @@ export interface LoginResponseData {
   displayName: string
   email: string
   accessToken: string
+  refreshToken?: string
   authProvider: 'password' | 'google'
+  role?: UserRole
+}
+
+export interface RefreshTokenResponseData {
+  accessToken: string
+  refreshToken?: string
+}
+
+export interface LogoutResponseData {
+  success: boolean
 }
 
 export type GetUserProfileResponse = ApiResponse<UserProfile>
 export type GetCareerGoalsResponse = ApiResponse<CareerGoal[]>
+export type GetMyAssessmentsResponse = ApiResponse<AssessmentHistoryItem[]>
 export type SubmitAssessmentResponse = ApiResponse<SubmitAssessmentResponseData>
 export type RecommendationResponse = ApiResponse<RecommendationResponseData>
 export type GetLearningPathResponse = ApiResponse<LearningPath>
@@ -118,6 +158,11 @@ export type GetBadgesResponse = ApiResponse<Badge[]>
 export type GetIndustryTrendsResponse = ApiResponse<IndustryTrend[]>
 export type GetCompanyCandidatesResponse = ApiResponse<CompanyCandidateSummary[]>
 export type GetProgressSummaryResponse = ApiResponse<ProgressSummary>
+export type GetJobRecommendationsResponse = ApiResponse<JobRecommendationsResponseData>
+export type GetCompanyJobPostsResponse = ApiResponse<CompanyJobPost[]>
+export type CreateCompanyJobPostResponse = ApiResponse<CompanyJobPost>
 export type LoginResponse = ApiResponse<LoginResponseData>
+export type RefreshTokenResponse = ApiResponse<RefreshTokenResponseData>
+export type LogoutResponse = ApiResponse<LogoutResponseData>
 export type RegisterResponse = ApiResponse<RegisterResponseData>
 export type ForgotPasswordResponse = ApiResponse<ForgotPasswordResponseData>

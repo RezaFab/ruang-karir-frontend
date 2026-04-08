@@ -66,6 +66,20 @@ export default function ProgressDashboardPage() {
         subtitle={`Pantau kesiapan karier ${userProfile?.fullName ?? 'pengguna'} secara menyeluruh.`}
       />
 
+      <article className="rounded-3xl border border-border bg-[linear-gradient(120deg,#0f2740,#1f6f8b)] p-6 text-white shadow-[0_20px_40px_rgba(15,39,64,0.24)]">
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/80">Momentum Belajar</p>
+        <h2 className="mt-2 font-heading text-3xl font-semibold">
+          {progressSummary.completionRate}% menuju target karier
+        </h2>
+        <p className="mt-2 text-sm text-white/90">{progressSummary.nextAction}</p>
+        <div className="mt-4 h-2 rounded-full bg-white/20">
+          <div
+            className="h-full rounded-full bg-white"
+            style={{ width: `${Math.min(progressSummary.completionRate, 100)}%` }}
+          />
+        </div>
+      </article>
+
       <div className="grid gap-3 md:grid-cols-4">
         <StatCard label="Progres Keseluruhan" value={`${progressSummary.completionRate}%`} />
         <StatCard
@@ -118,10 +132,10 @@ export default function ProgressDashboardPage() {
         </article>
 
         <article className="rounded-2xl border border-border bg-panel p-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Pengingat Aksi Berikutnya</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Aksi Berikutnya</p>
           <h2 className="mt-2 font-heading text-2xl font-semibold text-ink">{progressSummary.nextAction}</h2>
           <p className="mt-3 text-sm text-muted">
-            Strategi ini membantu menjaga konsistensi pace belajar dan mempercepat skor kesiapan.
+            Strategi ini menjaga konsistensi belajar dan membantu meningkatkan skor kesesuaian profil kerja.
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
             <Link

@@ -4,8 +4,13 @@ import type {
   GoogleLoginRequest,
   LoginRequest,
   LoginResponse,
+  LogoutRequest,
+  LogoutResponse,
+  RefreshTokenRequest,
+  RefreshTokenResponse,
   RegisterRequest,
   RegisterResponse,
+  UserRole,
 } from '../types'
 import { createApiResponse, withDelay } from '../mocks/helpers'
 import type { AuthApiService } from './authService'
@@ -16,9 +21,11 @@ interface MockAccount {
   username: string
   email: string
   password: string
+  role: UserRole
 }
 
 const DUMMY_GOOGLE_TOKEN_PREFIX = 'dummy-google-token'
+const refreshTokenState = new Map<string, string>()
 
 const accountState: MockAccount[] = [
   {
@@ -27,6 +34,7 @@ const accountState: MockAccount[] = [
     username: 'RuangKarirAdmin',
     email: 'ruangkariradmin@ruangkarir.id',
     password: 'NeedLoker',
+    role: 'admin',
   },
 ]
 
@@ -35,13 +43,23 @@ function normalize(value: string): string {
 }
 
 function buildSessionFromAccount(account: MockAccount, provider: 'password' | 'google') {
+  const refreshToken = issueRefreshToken(account.id)
+
   return {
     userId: account.id,
     displayName: account.fullName,
     email: account.email,
     accessToken: `mock-token-${account.id}-${provider}`,
+    refreshToken,
     authProvider: provider,
+    role: account.role,
   } as const
+}
+
+function issueRefreshToken(accountId: string): string {
+  const refreshToken = `mock-refresh-${accountId}-${Math.random().toString(36).slice(2, 10)}`
+  refreshTokenState.set(refreshToken, accountId)
+  return refreshToken
 }
 
 function findAccountByIdentifier(identifier: string): MockAccount | undefined {
@@ -78,6 +96,44 @@ export const mockAuthApiService: AuthApiService = {
     return withDelay(createApiResponse(buildSessionFromAccount(account, 'password'), 'Login berhasil.'), 800)
   },
 
+  async refresh(payload: RefreshTokenRequest): Promise<RefreshTokenResponse> {
+    const accountId = refreshTokenState.get(payload.refreshToken)
+
+    if (!accountId) {
+      await withDelay(null, 500)
+      throw new Error('Refresh token tidak valid atau sudah kedaluwarsa.')
+    }
+
+    const account = accountState.find((item) => item.id === accountId)
+
+    if (!account) {
+      await withDelay(null, 500)
+      throw new Error('Akun tidak ditemukan.')
+    }
+
+    refreshTokenState.delete(payload.refreshToken)
+    const rotatedRefreshToken = issueRefreshToken(account.id)
+
+    return withDelay(
+      createApiResponse(
+        {
+          accessToken: `mock-token-${account.id}-password`,
+          refreshToken: rotatedRefreshToken,
+        },
+        'Access token diperbarui.',
+      ),
+      500,
+    )
+  },
+
+  async logout(payload: LogoutRequest): Promise<LogoutResponse> {
+    if (payload.refreshToken) {
+      refreshTokenState.delete(payload.refreshToken)
+    }
+
+    return withDelay(createApiResponse({ success: true }, 'Logout berhasil.'), 350)
+  },
+
   async loginWithGoogle(payload: GoogleLoginRequest): Promise<LoginResponse> {
     if (!payload.idToken.trim() || !payload.idToken.startsWith(DUMMY_GOOGLE_TOKEN_PREFIX)) {
       await withDelay(null, 500)
@@ -90,6 +146,7 @@ export const mockAuthApiService: AuthApiService = {
       username: 'google.user',
       email: 'google.user@ruangkarir.id',
       password: '',
+      role: 'worker',
     }
 
     const existingGoogleUser = accountState.find((account) => account.id === googleAccount.id)
@@ -127,6 +184,7 @@ export const mockAuthApiService: AuthApiService = {
       username: payload.username.trim(),
       email: payload.email.trim(),
       password: payload.password,
+      role: 'worker',
     }
 
     accountState.push(newAccount)

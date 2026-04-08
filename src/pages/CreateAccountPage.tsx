@@ -85,7 +85,7 @@ export default function CreateAccountPage() {
               type="text"
               value={fullName}
               onChange={(event) => setFullName(event.target.value)}
-              placeholder="Contoh: Alya Pratama"
+              placeholder="Contoh: Reza Lesmana"
               className="input-field"
               disabled={registerMutation.isPending}
             />
@@ -97,7 +97,7 @@ export default function CreateAccountPage() {
               type="text"
               value={username}
               onChange={(event) => setUsername(event.target.value)}
-              placeholder="Contoh: alyapratama"
+              placeholder="Contoh: rezalesmana"
               className="input-field"
               disabled={registerMutation.isPending}
             />

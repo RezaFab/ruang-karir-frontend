@@ -41,6 +41,17 @@ body {
   min-height: 100vh;
 }
 
+button:not(:disabled),
+a[href],
+[role='button']:not([aria-disabled='true']) {
+  cursor: pointer;
+}
+
+button:disabled,
+[role='button'][aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
 .input-field {
   width: 100%;
   border-radius: 0.85rem;
