@@ -79,3 +79,44 @@ button:disabled,
   opacity: 1;
   transform: translateY(0);
 }
+
+@keyframes landingFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes landingFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .landing-fade-up {
+    opacity: 0;
+    transform: translateY(18px);
+    animation: landingFadeUp 0.7s ease-out forwards;
+  }
+
+  .landing-fade-delay-1 {
+    animation-delay: 0.12s;
+  }
+
+  .landing-fade-delay-2 {
+    animation-delay: 0.24s;
+  }
+
+  .landing-float-slow {
+    animation: landingFloat 6s ease-in-out infinite;
+  }
+}

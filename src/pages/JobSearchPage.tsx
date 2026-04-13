@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { EmptyState, ErrorState, LoadingSkeleton, SectionHeader } from '../components'
 import { useJobRecommendationsQuery } from '../hooks/useCareerApi'
 import { formatDate } from '../utils'
@@ -19,8 +19,10 @@ function resolveMatchTone(score: number): string {
 }
 
 export default function JobSearchPage() {
+  const [searchParams] = useSearchParams()
+  const initialSearchQuery = searchParams.get('q')?.trim() ?? ''
   const { data, isLoading, isError, refetch } = useJobRecommendationsQuery()
-  const [searchInput, setSearchInput] = useState('')
+  const [searchInput, setSearchInput] = useState(initialSearchQuery)
   const [workModeFilter, setWorkModeFilter] = useState<'all' | 'remote' | 'hybrid' | 'onsite'>('all')
   const [jobTypeFilter, setJobTypeFilter] = useState<'all' | 'full-time' | 'contract' | 'freelance'>('all')
   const [showFilters, setShowFilters] = useState(false)

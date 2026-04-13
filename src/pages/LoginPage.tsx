@@ -1,45 +1,27 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { useLoginMutation } from '../hooks/useAuth'
+import { useGoogleLoginMutation, useLoginMutation } from '../hooks/useAuth'
 import { useSessionStore } from '../store'
-import type { UserRole } from '../types'
+import type { LoginResponseData } from '../types'
 
 const DEFAULT_REDIRECT = '/dashboard'
-
-function GoogleIcon() {
-  return (
-    <svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true" focusable="false">
-      <path
-        fill="#FFC107"
-        d="M43.61 20.08H42V20H24v8h11.3C33.66 32.66 29.24 36 24 36c-6.63 0-12-5.37-12-12s5.37-12 12-12c3.06 0 5.84 1.15 7.96 3.04l5.66-5.66C34.05 6.05 29.28 4 24 4 12.95 4 4 12.95 4 24s8.95 20 20 20 20-8.95 20-20c0-1.34-.14-2.65-.39-3.92Z"
-      />
-      <path
-        fill="#FF3D00"
-        d="m6.31 14.69 6.57 4.82C14.65 15.11 18.96 12 24 12c3.06 0 5.84 1.15 7.96 3.04l5.66-5.66C34.05 6.05 29.28 4 24 4c-7.69 0-14.35 4.34-17.69 10.69Z"
-      />
-      <path
-        fill="#4CAF50"
-        d="M24 44c5.17 0 9.86-1.98 13.41-5.19l-6.19-5.24C29.14 35.09 26.72 36 24 36c-5.21 0-9.62-3.32-11.29-7.95l-6.52 5.03C9.5 39.56 16.23 44 24 44Z"
-      />
-      <path
-        fill="#1976D2"
-        d="M43.61 20.08H42V20H24v8h11.3a12 12 0 0 1-6.08 7.57l6.19 5.24C39 37.6 44 31.31 44 24c0-1.34-.14-2.65-.39-3.92Z"
-      />
-    </svg>
-  )
-}
+const MAX_AUTH_BUTTON_WIDTH = 400
 
 export default function LoginPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const setSession = useSessionStore((state) => state.setSession)
+  const googleButtonRef = useRef<HTMLDivElement | null>(null)
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() ?? ''
 
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
-  const [infoMessage, setInfoMessage] = useState('')
+  const [isGoogleReady, setIsGoogleReady] = useState(false)
 
   const loginMutation = useLoginMutation()
+  const googleLoginMutation = useGoogleLoginMutation()
+  const triggerGoogleLogin = googleLoginMutation.mutate
   const isSubmitting = loginMutation.isPending
 
   const redirectTarget = useMemo(() => {
@@ -51,23 +33,116 @@ export default function LoginPage() {
 
     return rawTarget
   }, [searchParams])
+  const infoMessage = !googleClientId ? 'Google SSO belum dikonfigurasi di aplikasi ini.' : ''
 
-  function resolvePostLoginRoute(role: UserRole | undefined): string {
-    if (redirectTarget !== DEFAULT_REDIRECT) {
-      return redirectTarget
+  const handleAuthSuccess = useCallback(
+    (sessionData: LoginResponseData) => {
+      const nextRoute =
+        redirectTarget !== DEFAULT_REDIRECT
+          ? redirectTarget
+          : sessionData.role === 'company'
+            ? '/company/jobs'
+            : '/dashboard'
+
+      setSession(sessionData)
+      navigate(nextRoute, { replace: true })
+    },
+    [navigate, redirectTarget, setSession],
+  )
+
+  useEffect(() => {
+    if (!googleClientId) {
+      return
     }
 
-    if (role === 'company') {
-      return '/company/jobs'
+    const scriptId = 'google-identity-services-script'
+    const existingScript = document.getElementById(scriptId) as HTMLScriptElement | null
+
+    const initializeGoogleButton = () => {
+      const google = window.google
+      const buttonContainer = googleButtonRef.current
+
+      if (!google || !buttonContainer) {
+        return
+      }
+
+      google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: (response) => {
+          const idToken = response.credential?.trim()
+
+          if (!idToken) {
+            setErrorMessage('Token Google tidak ditemukan. Silakan coba lagi.')
+            return
+          }
+
+          setErrorMessage('')
+          triggerGoogleLogin(
+            { idToken },
+            {
+              onSuccess: (sessionData) => {
+                handleAuthSuccess(sessionData)
+              },
+              onError: (error) => {
+                setErrorMessage(error instanceof Error ? error.message : 'Masuk dengan Google gagal.')
+              },
+            },
+          )
+        },
+      })
+
+      buttonContainer.innerHTML = ''
+      const computedWidth = Math.max(
+        260,
+        Math.min(Math.floor(buttonContainer.clientWidth || MAX_AUTH_BUTTON_WIDTH), MAX_AUTH_BUTTON_WIDTH),
+      )
+      google.accounts.id.renderButton(buttonContainer, {
+        type: 'standard',
+        theme: 'outline',
+        size: 'large',
+        shape: 'rectangular',
+        width: computedWidth,
+        text: 'signin_with',
+        logo_alignment: 'left',
+      })
+      setIsGoogleReady(true)
     }
 
-    return '/dashboard'
-  }
+    if (window.google?.accounts?.id) {
+      initializeGoogleButton()
+      return
+    }
+
+    const scriptElement =
+      existingScript ??
+      Object.assign(document.createElement('script'), {
+        id: scriptId,
+        src: 'https://accounts.google.com/gsi/client',
+        async: true,
+        defer: true,
+      })
+
+    if (!existingScript) {
+      document.head.append(scriptElement)
+    }
+
+    const handleScriptError = () => {
+      setErrorMessage('Gagal memuat layanan Google. Periksa koneksi lalu coba lagi.')
+      setIsGoogleReady(false)
+    }
+
+    scriptElement.addEventListener('load', initializeGoogleButton)
+    scriptElement.addEventListener('error', handleScriptError)
+
+    return () => {
+      scriptElement.removeEventListener('load', initializeGoogleButton)
+      scriptElement.removeEventListener('error', handleScriptError)
+    }
+  }, [googleClientId, handleAuthSuccess, triggerGoogleLogin])
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
-    setInfoMessage('')
 
     if (!identifier.trim() || !password.trim()) {
       setErrorMessage('Username/email dan password wajib diisi.')
@@ -81,8 +156,7 @@ export default function LoginPage() {
       },
       {
         onSuccess: (sessionData) => {
-          setSession(sessionData)
-          navigate(resolvePostLoginRoute(sessionData.role), { replace: true })
+          handleAuthSuccess(sessionData)
         },
         onError: (error) => {
           setErrorMessage(error instanceof Error ? error.message : 'Login gagal. Coba lagi.')
@@ -122,7 +196,7 @@ export default function LoginPage() {
         <h1 className="mb-6 text-center font-heading text-3xl font-semibold text-ink">Masuk</h1>
 
         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          <label className="block space-y-2">
+          <label className="mx-auto block w-full max-w-[400px] space-y-2">
             <span className="text-sm font-semibold text-ink">Username atau alamat email</span>
             <input
               type="text"
@@ -135,7 +209,7 @@ export default function LoginPage() {
             />
           </label>
 
-          <div className="space-y-2">
+          <div className="mx-auto w-full max-w-[400px] space-y-2">
             <div className="flex items-center justify-between gap-2">
               <span className="text-sm font-semibold text-ink">Password</span>
               <Link to="/forgot-password" className="text-sm font-medium text-primary transition hover:underline">
@@ -154,13 +228,13 @@ export default function LoginPage() {
           </div>
 
           {errorMessage ? (
-            <p className="rounded-md border border-danger/40 bg-danger-soft px-3 py-2 text-sm text-danger">
+            <p className="mx-auto w-full max-w-[400px] rounded-md border border-danger/40 bg-danger-soft px-3 py-2 text-sm text-danger">
               {errorMessage}
             </p>
           ) : null}
 
           {infoMessage ? (
-            <p className="rounded-md border border-primary/30 bg-primary-soft px-3 py-2 text-sm text-primary">
+            <p className="mx-auto w-full max-w-[400px] rounded-md border border-primary/30 bg-primary-soft px-3 py-2 text-sm text-primary">
               {infoMessage}
             </p>
           ) : null}
@@ -168,25 +242,29 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="mt-2 h-12 w-full rounded-md bg-[#238636] text-base font-semibold text-white transition hover:bg-[#2ea043] disabled:cursor-not-allowed disabled:opacity-60"
+            className="mx-auto mt-2 block h-12 w-full max-w-[400px] rounded-md bg-[#238636] text-base font-semibold text-white transition hover:bg-[#2ea043] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loginMutation.isPending ? 'Sedang masuk...' : 'Masuk'}
           </button>
 
-          <div className="my-1 flex items-center gap-4 py-3">
+          <div className="mx-auto my-1 flex w-full max-w-[400px] items-center gap-4 py-3">
             <div className="h-px flex-1 bg-border" />
             <span className="text-sm text-muted">atau</span>
             <div className="h-px flex-1 bg-border" />
           </div>
 
-          <button
-            type="button"
-            onClick={() => setInfoMessage('Login Google akan segera tersedia.')}
-            className="flex h-12 w-full items-center justify-center gap-3 rounded-md border border-border bg-panel text-base font-semibold text-ink transition hover:bg-slate-200"
-          >
-            <GoogleIcon />
-            Masuk dengan Google
-          </button>
+          <div className="mx-auto min-h-12 w-full max-w-[400px]">
+            <div ref={googleButtonRef} className="w-full overflow-hidden rounded-md" />
+            {googleClientId && !isGoogleReady ? (
+              <button
+                type="button"
+                disabled
+                className="h-12 w-full rounded-md border border-border bg-panel text-sm font-semibold text-muted"
+              >
+                Memuat tombol Google...
+              </button>
+            ) : null}
+          </div>
         </form>
 
         <p className="mt-8 text-center text-base text-ink">
