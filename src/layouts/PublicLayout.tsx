@@ -146,7 +146,7 @@ export function PublicLayout() {
             Platform AI untuk membantu transisi karier melalui asesmen personal, rekomendasi role, dan
             learning path berbasis kebutuhan industri.
           </p>
-          <p className="mt-6 text-xs uppercase tracking-[0.12em] text-muted">© 2026 RAJA Jasindo</p>
+          <p className="mt-6 text-xs uppercase tracking-[0.12em] text-muted">© 2026 RezaFab</p>
         </div>
       </footer>
 
