@@ -2,6 +2,8 @@
 
 Frontend aplikasi **Ruang Karir** berbasis React + TypeScript dengan mode **full API** (tanpa mock/dummy data di runtime).
 
+Live URL : https://ruang-karir-frontend.vercel.app/
+
 ## Stack
 
 - React 19 + TypeScript + Vite
